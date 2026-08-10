@@ -3,6 +3,9 @@ import { View, Text, Image,TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Heart, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
+import { useState ,useEffect} from "react";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
 
 const wishlisIitems = [
   {
@@ -37,6 +40,27 @@ const wishlisIitems = [
 
 export default function Wishlist() {
   const router = useRouter();
+  const [wishlistItems, setWishlistItems] = useState(wishlisIitems);
+
+  useEffect(() => {
+    (async () => {
+      const data = await AsyncStorage.getItem("wishlist");
+      if (data) {
+        setWishlistItems(JSON.parse(data));
+      }
+    })();
+  }, []);
+
+useEffect(() => {
+  AsyncStorage.setItem("wishlist", JSON.stringify(wishlistItems));
+}, [wishlistItems]);
+
+  function removeItem(id: number): void {
+      const updatedItems = wishlistItems.filter((item) => item.id !== id);
+      setWishlistItems(updatedItems);
+    }
+
+
   if (!global.isAuthenticated) {
     return (
       <View style={styles.container}>
@@ -54,23 +78,20 @@ export default function Wishlist() {
       </View>
     );
   }
-    function removeItem(id: number): void {
-        throw new Error("Function not implemented.");
-    }
+  
 
   return(
     <View style={styles.container}>
         <View style = {styles.header}>
             <Text style = {styles.headerTitle}>Wishlist</Text>
         </View>
-        <ScrollView>
-            {wishlisIitems.map((item) => (
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+            {wishlistItems.map((item) => (
             <View key={item.id} style={{ flexDirection: "row", padding: 10, borderBottomWidth: 1, borderBottomColor: "#ddd" }}>
                 <Image source={{ uri: item.image }} style={styles.itemImage} />
                 <View style={styles.itemInfo}>
               <Text style={styles.brandName}>{item.brand}</Text>
               <Text style={styles.itemName}>{item.name}</Text>
-
               <View style={styles.priceContainer}>
                 <Text style={styles.price}>{item.price}</Text>
                 <Text style={styles.discount}>{item.discount}</Text>
@@ -108,6 +129,8 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: "bold",
     color: "#333",
+    marginTop: 50,
+    textAlign: "center",
   },
   emptyState: {
     flex: 1,
@@ -182,6 +205,9 @@ const styles = StyleSheet.create({
     padding: 8,
     justifyContent: "center",
     alignItems: "center",
+  },
+  scrollContent: {
+    paddingBottom: 20,
   },
 });
 

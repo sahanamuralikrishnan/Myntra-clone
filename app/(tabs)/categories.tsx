@@ -297,6 +297,8 @@ const styles = StyleSheet.create({
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
+    marginTop: 50,
+    textAlign: "center",
   },
   searchContainer: {
     marginBottom: 20,
