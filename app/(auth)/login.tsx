@@ -3,15 +3,18 @@ import { useState } from "react";
 import React from "react";
 import { View, Text, Image, TextInput, TouchableOpacity, StyleSheet } from "react-native";
 
-export default function Login() {
+type LoginProps = {
+  onLogin: () => void;
+};
+
+export default function Login({ onLogin }: LoginProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
+  const  router = useRouter();
 
   const handleLogin = () => {
     if (email && password) {
-      global.isAuthenticated = true;
-      router.replace("/");
+      onLogin();
     } else {
       alert("Please enter email and password");
     }

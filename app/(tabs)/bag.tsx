@@ -3,6 +3,7 @@ import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
 import { Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
+import React, { useState } from "react";
 
 const bagItems = [
   {
@@ -43,10 +44,8 @@ const bagItems = [
 
 export default function shoppingBag() {
   const router = useRouter();
-  const total = bagItems.reduce(
-    (acc, item) => acc + item.price * item.quantity,
-    0,
-  );
+  const [items, setItems] = useState(bagItems);
+  const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
 
   if (!global.isAuthenticated) {
     return (
@@ -68,8 +67,26 @@ export default function shoppingBag() {
       </View>
     );
   }
-  function removeItem(id: number): void {
-    throw new Error("Function not implemented.");
+ // 🗑 Delete item
+  function removeItem(id: number) {
+    const updated = items.filter(item => item.id !== id);
+    setItems(updated); // ✅ updates state so UI re-renders
+  }
+
+  function decreaseQuantity(id: number): void {
+    const updated = items
+      .map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item,
+      )
+      .filter((item) => item.quantity > 0);
+    setItems(updated);
+  }
+
+  function increaseQuantity(id: number) {
+    const updated = items.map((item) =>
+      item.id === id ? { ...item, quantity: item.quantity + 1 } : item,
+    );
+    setItems(updated);
   }
 
   return (
@@ -78,22 +95,24 @@ export default function shoppingBag() {
         <Text style={styles.headerTitle}>Shopping Bag</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {bagItems.map((item) => (
+        {items.map((item) => (
           <View key={item.id} style={styles.itemRow}>
             <Image source={{ uri: item.image }} style={styles.itemImage} />
             <View style={styles.itemInfo}>
               <Text style={styles.brandName}>{item.brand}</Text>
               <Text style={styles.itemName}>{item.name}</Text>
+              <Text style={styles.price}>{item.price}</Text>
               <Text style={styles.itemName}>size:{item.size}</Text>
               <View style={styles.priceContainer}>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => decreaseQuantity(item.id)}>
                   <Minus />
                 </TouchableOpacity>
+                
                 <Text style={styles.price}>{item.quantity}</Text>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => increaseQuantity(item.id)}>
                   <Plus />
                 </TouchableOpacity>
-                <TouchableOpacity>
+                <TouchableOpacity onPress={() => removeItem(item.id)}>
                   <Trash2 />
                 </TouchableOpacity>
               </View>
