@@ -68,6 +68,14 @@ export default function TabLayout() {
           ),
         }}
       />
+
+      <Tabs.Screen
+  name="checkout"
+  options={{
+    href: null, // 🚫 hides it from the tab bar
+    tabBarStyle: { display: "none" }, // optional: hides bottom bar when on checkout
+  }}
+/>
     </Tabs>
   );
 }

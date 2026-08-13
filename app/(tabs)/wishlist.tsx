@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#fff",
   },
   header: {
-    paddingVertical: 15,
+    paddingVertical: 16,
     paddingHorizontal: 20,
     borderBottomWidth: 1,
     borderBottomColor: "#ddd",
@@ -145,11 +145,13 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   button: {
-    marginTop: 20,
-    backgroundColor: "#ff3f6c", // Myntra-style pink/red
+   marginTop: 20,
     paddingVertical: 12,
-    paddingHorizontal: 30,
+    paddingHorizontal: 32,
+    backgroundColor: "#007AFF", // iOS-style blue button
     borderRadius: 8,
+    width: "80%",               // wide enough for mobile
+    alignItems: "center",
   },
   buttonText: {
     color: "#fff",

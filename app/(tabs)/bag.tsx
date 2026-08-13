@@ -45,7 +45,10 @@ const bagItems = [
 export default function shoppingBag() {
   const router = useRouter();
   const [items, setItems] = useState(bagItems);
-  const total = items.reduce((acc, item) => acc + item.price * item.quantity, 0);
+  const total = items.reduce(
+    (acc, item) => acc + item.price * item.quantity,
+    0,
+  );
 
   if (!global.isAuthenticated) {
     return (
@@ -55,7 +58,6 @@ export default function shoppingBag() {
         </View>
         <View style={styles.emptyState}>
           <ShoppingBag size={64} color="#ff3f6c" />
-          {/* <Heart size={64} color="#ff3f6c" /> */}
           <Text style={styles.emptyTitle}>Please login to view your bag.</Text>
           <TouchableOpacity
             style={styles.button}
@@ -67,16 +69,18 @@ export default function shoppingBag() {
       </View>
     );
   }
- // 🗑 Delete item
+  // 🗑 Delete item
   function removeItem(id: number) {
-    const updated = items.filter(item => item.id !== id);
+    const updated = items.filter((item) => item.id !== id);
     setItems(updated); // ✅ updates state so UI re-renders
   }
 
   function decreaseQuantity(id: number): void {
     const updated = items
       .map((item) =>
-        item.id === id ? { ...item, quantity: Math.max(1, item.quantity - 1) } : item,
+        item.id === id
+          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
+          : item,
       )
       .filter((item) => item.quantity > 0);
     setItems(updated);
@@ -105,13 +109,12 @@ export default function shoppingBag() {
               <Text style={styles.itemName}>size:{item.size}</Text>
               <View style={styles.priceContainer}>
                 <TouchableOpacity onPress={() => decreaseQuantity(item.id)}>
-                  <Minus />
-                </TouchableOpacity>
-                
-                <Text style={styles.price}>{item.quantity}</Text>
-                <TouchableOpacity onPress={() => increaseQuantity(item.id)}>
-                  <Plus />
-                </TouchableOpacity>
+    <Text style={styles.quantityButton}>-</Text>
+  </TouchableOpacity>
+                <Text style={styles.quantityText}>{item.quantity}</Text>
+              <TouchableOpacity onPress={() => increaseQuantity(item.id)}>
+    <Text style={styles.quantityButton}>+</Text>
+  </TouchableOpacity>
                 <TouchableOpacity onPress={() => removeItem(item.id)}>
                   <Trash2 />
                 </TouchableOpacity>
@@ -128,9 +131,9 @@ export default function shoppingBag() {
         </View>
         <TouchableOpacity
           onPress={() => router.push("/checkout")}
-          style={styles.button}
+          style={styles.placeOrderButton}
         >
-          <Text style={styles.buttonText}>Place order</Text>
+          <Text style={styles.placeOrderText}>Place order</Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -139,30 +142,30 @@ export default function shoppingBag() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#fff" },
-header: {
-  paddingVertical: 18,
-  paddingHorizontal: 20,
-  alignItems: "center",
-  justifyContent: "center",
-  backgroundColor: "#fff",
-  borderBottomWidth: 1,
-  borderBottomColor: "#eee",
-  shadowColor: "#000",
-  shadowOpacity: 0.1,
-  shadowRadius: 3,
-  elevation: 3,
-},
- headerTitle: {
-  fontSize: 22,
-  fontWeight: "bold",
-  color: "#111",
-   textAlign: "center",   // centers horizontally
-  marginTop: 50, 
-},
+  header: {
+    paddingVertical: 18,
+    paddingHorizontal: 20,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: "bold",
+    color: "#111",
+    textAlign: "center", // centers horizontally
+    marginTop: 50,
+  },
   scrollContent: {
-  padding: 12,
-  paddingBottom: 120, // space so last item isn’t hidden behind footer
-},
+    padding: 12,
+    paddingBottom: 120, // space so last item isn’t hidden behind footer
+  },
   itemRow: {
     flexDirection: "row",
     backgroundColor: "#fff",
@@ -174,24 +177,88 @@ header: {
     shadowRadius: 4,
     elevation: 2,
   },
-  itemImage: { width: 90, height: 90, borderRadius: 8, marginRight: 12, resizeMode: "cover" },
+  itemImage: {
+    width: 90,
+    height: 90,
+    borderRadius: 8,
+    marginRight: 12,
+    resizeMode: "cover",
+  },
   itemInfo: { flex: 1, justifyContent: "space-between" },
   brandName: { fontSize: 14, fontWeight: "600", color: "#555" },
-  itemName: { fontSize: 15, fontWeight: "bold", color: "#222", marginVertical: 2 },
-  priceContainer: { flexDirection: "row", alignItems: "center", marginTop: 6, gap: 12 },
+  itemName: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#222",
+    marginVertical: 2,
+  },
+  priceContainer: {
+      flexDirection: "row",
+  justifyContent: "space-between", // label left, amount right
+  alignItems: "center",
+  marginBottom: 16,
+  },
   price: { fontSize: 15, fontWeight: "bold", color: "#000" },
   footer: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: "#eee",
-    backgroundColor: "#fff",
+      padding: 16,
+  borderTopWidth: 1,
+  borderTopColor: "#eee",
+  backgroundColor: "#fff",
   },
-  button: { marginTop: 12, backgroundColor: "#ff3f6c", paddingVertical: 14, borderRadius: 8 },
-  buttonText: { color: "#fff", fontSize: 16, fontWeight: "bold", textAlign: "center" },
-  emptyState: { justifyContent: "center", alignItems: "center", padding: 20 },
-  emptyTitle: { fontSize: 16, color: "#555", marginTop: 15, textAlign: "center" },
+  button: {
+    marginTop: 20,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    backgroundColor: "#007AFF", // iOS-style blue button
+    borderRadius: 8,
+    width: "80%",               // wide enough for mobile
+    alignItems: "center",
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
+  },
+  emptyState: { justifyContent: "center", alignItems: "center", padding: 20 ,flex:1 ,paddingHorizontal: 20,},
+  emptyTitle: {
+    fontSize: 16,
+    color: "#333",
+    marginTop: 12,
+    textAlign: "center",
+  },
+
+    bagIcon: {
+    marginBottom: 16,
+  },
+  placeOrderButton: {
+  backgroundColor: "#ff3f6c", // pink button
+  paddingVertical: 16,
+  borderRadius: 8,
+  alignItems: "center",
+},
+
+placeOrderText: {
+  color: "#fff", // white text
+  fontSize: 16,
+  fontWeight: "bold",
+},
+quantityContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "center",
+},
+
+quantityButton: {
+  fontSize: 20,
+  fontWeight: "bold",
+  color: "#333",
+  paddingHorizontal: 1,   // reduce this to make buttons closer
+},
+
+quantityText: {
+  fontSize: 16,
+  fontWeight: "600",
+  marginHorizontal: 1,    // reduce spacing around the number
+},
 });
