@@ -9,7 +9,7 @@ import { useColorScheme } from '@/hooks/use-color-scheme';
 declare global {
   var isAuthenticated: boolean;
 }
-global.isAuthenticated = true;
+global.isAuthenticated = false;
 
 
 export const unstable_settings = {

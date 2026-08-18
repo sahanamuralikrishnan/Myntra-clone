@@ -76,6 +76,15 @@ export default function TabLayout() {
     tabBarStyle: { display: "none" }, // optional: hides bottom bar when on checkout
   }}
 />
+
+
+      <Tabs.Screen
+  name="orders"
+  options={{
+    href: null, // 🚫 hides it from the tab bar
+    tabBarStyle: { display: "none" }, // optional: hides bottom bar when on checkout
+  }}
+/>
     </Tabs>
   );
 }

@@ -20,7 +20,7 @@ import { Fonts } from "@/constants/theme";
 import { useState } from "react";
 import { X, Search } from "lucide-react-native";
 
-// data/categories.js
+
 const categories = [
   {
     id: 1,
@@ -374,9 +374,10 @@ const styles = StyleSheet.create({
   },
   productImage: {
     width: "100%",
-    height: 180,
+    height: 220,
     borderRadius: 8,
     marginBottom: 12,
+    resizeMode: "cover",
   },
   productCard: {
     backgroundColor: "#fff",
@@ -397,7 +398,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: "#333",
-    marginBottom: 8,
+    marginBottom: 4,
   },
   priceRow: {
     flexDirection: "row",
