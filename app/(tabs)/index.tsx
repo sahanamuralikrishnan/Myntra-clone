@@ -1,6 +1,7 @@
 import React from "react";
 import { ThemeProvider, ThemeContext } from "@/context/ThemeContext";
 import Navigator from "../navigator";
+import { BagProvider } from "../contexts/BagContext";
 
 export default function App() {
   return (
@@ -8,4 +9,5 @@ export default function App() {
       <Navigator />
     </ThemeProvider>
   );
+  
 }

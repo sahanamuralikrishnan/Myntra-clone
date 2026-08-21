@@ -5,6 +5,7 @@ import { Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import React, { useState } from "react";
 
+
 const bagItems = [
   {
     id: 1,
@@ -106,7 +107,7 @@ export default function shoppingBag() {
               <Text style={styles.brandName}>{item.brand}</Text>
               <Text style={styles.itemName}>{item.name}</Text>
               <Text style={styles.price}>{item.price}</Text>
-              <Text style={styles.itemName}>size:{item.size}</Text>
+              <Text style={styles.itemName}>size:{item.Size}</Text>
               <View style={styles.priceContainer}>
                 <TouchableOpacity onPress={() => decreaseQuantity(item.id)}>
     <Text style={styles.quantityButton}>-</Text>
