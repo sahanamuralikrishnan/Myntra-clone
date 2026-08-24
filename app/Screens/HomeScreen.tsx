@@ -1,7 +1,8 @@
 import React, { useRef, useState, useEffect, useContext } from "react";
-import { ThemeProvider, ThemeContext } from "@/context/ThemeContext";
+import { ThemeProvider, ThemeContext } from "@/app/context/ThemeContext";
 import {
   Dimensions,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,6 +16,8 @@ import { Search } from "lucide-react-native";
 import navigator from "../navigator";
 import { router, useRouter } from "expo-router";
 import { products } from "../data/products";
+import { useBag } from "../context/BagContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 200;
@@ -265,6 +268,7 @@ const deals = [
 export default function HomeScreen() {
 
  const  router=useRouter();
+ const { addToBag } = useBag();
  const handleProductPress = (productId: number) => {
   if(!global.isAuthenticated){
     router.push("/login");
@@ -273,12 +277,53 @@ export default function HomeScreen() {
  }
   
   const [searchText, setSearchText] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState<
+    (typeof products)[number] | null
+  >(null);
 
   // ✅ Get theme from context
   const themeContext = useContext(ThemeContext);
   if (!themeContext) return null;
   const { theme, setTheme } = themeContext;
 
+  const handleAddToBag = (product: (typeof products)[number]) => {
+    setSelectedProduct(product);
+  };
+
+  const handleSizeSelect = (size: string) => {
+    if (!selectedProduct) return;
+
+    addToBag({
+      ...selectedProduct,
+      selectedSize: size,
+      quantity: 1,
+    });
+    setSelectedProduct(null);
+    router.push("/bag");
+  };
+  const handleAddToWishlist = async (
+    product: (typeof products)[number]
+  ) => {
+    const savedWishlist = await AsyncStorage.getItem("wishlist");
+    const wishlistItems: (typeof products)[number][] = savedWishlist
+      ? JSON.parse(savedWishlist)
+      : [];
+
+    const updatedWishlist = wishlistItems.some(
+      (item) => item.id === product.id
+    )
+      ? wishlistItems.map((item) =>
+          item.id === product.id ? product : item
+        )
+      : [...wishlistItems, product];
+
+    await AsyncStorage.setItem(
+      "wishlist",
+      JSON.stringify(updatedWishlist)
+    );
+
+    router.push("/wishlist");
+  };
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.background }]}
@@ -399,11 +444,13 @@ export default function HomeScreen() {
             <View style={styles.actions}>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: theme.primary }]}
+                onPress={() => handleAddToBag(p)}
               >
                 <Text style={styles.actionText}>Add to Cart</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: theme.primary }]}
+                onPress={() => handleAddToWishlist(p)}
               >
                 <Text style={styles.actionText}>Wishlist</Text>
               </TouchableOpacity>
@@ -411,6 +458,38 @@ export default function HomeScreen() {
           </TouchableOpacity>
         ))}
       </View>
+      <Modal
+        visible={selectedProduct !== null}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setSelectedProduct(null)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.sizeModal}>
+            <Text style={styles.sizeModalTitle}>Select Size</Text>
+            <Text style={styles.sizeModalProduct}>
+              {selectedProduct?.name}
+            </Text>
+            <View style={styles.sizeOptions}>
+              {selectedProduct?.sizes?.map((size) => (
+                <TouchableOpacity
+                  key={size}
+                  style={styles.sizeOption}
+                  onPress={() => handleSizeSelect(size)}
+                >
+                  <Text style={styles.sizeOptionText}>{size}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+            <TouchableOpacity
+              style={styles.cancelSizeButton}
+              onPress={() => setSelectedProduct(null)}
+            >
+              <Text style={styles.cancelSizeText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </ScrollView>
   );
 }
@@ -541,5 +620,54 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontWeight: "500",
     color: "#444",
+  },
+  modalOverlay: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+  },
+  sizeModal: {
+    width: "82%",
+    padding: 20,
+    borderRadius: 10,
+    backgroundColor: "#fff",
+  },
+  sizeModalTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    color: "#222",
+  },
+  sizeModalProduct: {
+    marginTop: 6,
+    color: "#666",
+  },
+  sizeOptions: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 10,
+    marginTop: 18,
+  },
+  sizeOption: {
+    minWidth: 54,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: "#ff3f6c",
+    borderRadius: 6,
+    alignItems: "center",
+  },
+  sizeOptionText: {
+    color: "#ff3f6c",
+    fontWeight: "600",
+  },
+  cancelSizeButton: {
+    alignSelf: "flex-end",
+    marginTop: 18,
+    padding: 6,
+  },
+  cancelSizeText: {
+    color: "#666",
+    fontWeight: "600",
   },
 });

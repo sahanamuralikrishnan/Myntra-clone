@@ -15,6 +15,7 @@ import { useRef, useState, useEffect } from "react";
 import { handleUrlParams } from "expo-router/build/fork/getStateFromPath-forks";
 import { Heart, ShoppingBag } from "lucide-react-native";
 import { products } from "../data/products";
+import { useBag } from "../context/BagContext";
 
 // const products = {
 //   1: {
@@ -88,6 +89,8 @@ export default function ProductDetails() {
   const [isLoading, setIsLoading] = useState(true);
 
   const product = products.find((p) => p.id === Number(id));
+  const {addToBag} = useBag();
+  
 
   useEffect(() => {
     const timer = setTimeout(() => setIsLoading(false), 1000);
@@ -103,7 +106,7 @@ export default function ProductDetails() {
       alert("Please select the size");
       return;
     }
-    addToBag({ ...product, selectedSize });  // ✅ add product to bag
+    addToBag({ ...product, selectedSize:selectedSize });  // ✅ add product to bag
   router.push("/bag");
 };
   

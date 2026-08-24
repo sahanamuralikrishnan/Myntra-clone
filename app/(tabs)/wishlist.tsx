@@ -5,55 +5,71 @@ import { Heart, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import { useState ,useEffect} from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useFocusEffect } from "expo-router";
+import { useCallback } from "react";
 
 
-const wishlisIitems = [
-  {
-    id: 1,
-    name: "Classic Sneakers",
-    brand: "Nike",
-    price: "3499",
-    discount: "30% OFF",
-    image:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop",
-  },
+// const wishlisIitems = [
+//   {
+//     id: 1,
+//     name: "Classic Sneakers",
+//     brand: "Nike",
+//     price: "3499",
+//     discount: "30% OFF",
+//     image:
+//       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop",
+//   },
 
-  {
-    id: 4,
-    name: "Men Jeans",
-    brand: "Levis",
-    price: "1999",
-    discount: "30% OFF",
-    image:
-      "https://media.istockphoto.com/id/1132154377/photo/jeans.webp?b=1&s=170667a&w=0&k=20&c=tZASI7kn4G8LG-XQnu4i4yxDy_Ix-3G-SKUzWV9qa-w=",
-  },
-  {
-    id: 6,
-    name: "Sneakers",
-    brand: "Adidas",
-    price: "2499",
-    discount: "20% OFF",
-    image:
-      "https://th.bing.com/th/id/OIP.b_9hj8vi9AJeqLysj2UJXgHaE8?w=193&h=129&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
-  },
-];
+//   {
+//     id: 4,
+//     name: "Men Jeans",
+//     brand: "Levis",
+//     price: "1999",
+//     discount: "30% OFF",
+//     image:
+//       "https://media.istockphoto.com/id/1132154377/photo/jeans.webp?b=1&s=170667a&w=0&k=20&c=tZASI7kn4G8LG-XQnu4i4yxDy_Ix-3G-SKUzWV9qa-w=",
+//   },
+//   {
+//     id: 6,
+//     name: "Sneakers",
+//     brand: "Adidas",
+//     price: "2499",
+//     discount: "20% OFF",
+//     image:
+//       "https://th.bing.com/th/id/OIP.b_9hj8vi9AJeqLysj2UJXgHaE8?w=193&h=129&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+//   },
+// ];
 
 export default function Wishlist() {
   const router = useRouter();
-  const [wishlistItems, setWishlistItems] = useState(wishlisIitems);
+  const [wishlistItems, setWishlistItems] = useState<any[]>([]);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const loadWishlist = async () => {
+      const data = await AsyncStorage.getItem("wishlist");
+        if (isActive) {
+          setWishlistItems(data ? JSON.parse(data) : []);
+          setIsLoaded(true);
+        }
+      };
+
+      loadWishlist();
+
+      return () => {
+        isActive = false;
+      };
+    }, [])
+  );
 
   useEffect(() => {
-    (async () => {
-      const data = await AsyncStorage.getItem("wishlist");
-      if (data) {
-        setWishlistItems(JSON.parse(data));
-      }
-    })();
-  }, []);
-
-useEffect(() => {
-  AsyncStorage.setItem("wishlist", JSON.stringify(wishlistItems));
-}, [wishlistItems]);
+    if (isLoaded) {
+      AsyncStorage.setItem("wishlist", JSON.stringify(wishlistItems));
+    }
+  }, [wishlistItems, isLoaded]);
 
   function removeItem(id: number): void {
       const updatedItems = wishlistItems.filter((item) => item.id !== id);
@@ -88,7 +104,14 @@ useEffect(() => {
         <ScrollView contentContainerStyle={styles.scrollContent}>
             {wishlistItems.map((item) => (
             <View key={item.id} style={{ flexDirection: "row", padding: 10, borderBottomWidth: 1, borderBottomColor: "#ddd" }}>
-                <Image source={{ uri: item.image }} style={styles.itemImage} />
+                <Image
+                  source={
+                    typeof item.image === "string"
+                      ? { uri: item.image }
+                      : item.image
+                  }
+                  style={styles.itemImage}
+                />
                 <View style={styles.itemInfo}>
               <Text style={styles.brandName}>{item.brand}</Text>
               <Text style={styles.itemName}>{item.name}</Text>

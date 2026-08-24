@@ -30,7 +30,7 @@ export const products = [
     discount: "25% OFF",
     sizes: ["One Size"],
     image:
-      "https://images.unsplash.com/photo-1594223274512-ad4803739b7c?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=60",
+      "https://th.bing.com/th/id/OIP.VzHXDecYdTo15bjlC1GRrAHaKA?w=193&h=260&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
   },
   {
     id: 4,
@@ -88,6 +88,7 @@ export const products = [
     brand: "Sangria",
     price: "2999",
     discount: "35% OFF",
+    sizes: ["One Size"],
     image:
       "https://media.istockphoto.com/id/1402583520/photo/closeup-view-of-stacked-colours-saris-or-sarees-in-display-of-indian-retail-shop-textile-shop.webp?b=1&s=170667a&w=0&k=20&c=KI123lKpRC5bEoZ0et3SO3SfUrOaFPHPF92Wdqnz768=",
   },
@@ -137,6 +138,7 @@ export const products = [
     brand: "Fossil",
     price: "3499",
     discount: "25% OFF",
+    sizes: ["One Size"],
     image:
       "https://images.unsplash.com/photo-1619134778706-7015533a6150?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MjB8fHdhdGNoZXN8ZW58MHx8MHx8fDA%3D",
   },
