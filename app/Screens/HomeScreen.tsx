@@ -377,6 +377,8 @@ export default function HomeScreen() {
               key={c.id}
               style={styles.categoryItem}
               activeOpacity={0.7}
+              onPress={() => router.push("/categories")}
+              
             >
               <Image
                 source={c.image}

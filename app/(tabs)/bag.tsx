@@ -1,9 +1,10 @@
 import react from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
-import React, { useState } from "react";
+import React, { useState , useEffect } from "react";
 import { useBag } from "../context/BagContext";
 
 interface BagItem {
@@ -15,68 +16,36 @@ interface BagItem {
   selectedSize?: string | number;
   quantity?: number;
 }
-
-
-// const bagItems = [
-//   {
-//     id: 1,
-//     name: "Classic Sneakers",
-//     brand: "Nike",
-//     price: 3499,
-//     discount: "30% OFF",
-//     quantity: 1,
-//     size: "10",
-//     image:
-//       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop",
-//   },
-
-//   {
-//     id: 4,
-//     name: "Men Jeans",
-//     brand: "Levis",
-//     price: 1999,
-//     discount: "30% OFF",
-//     quantity: 1,
-//     size: "32",
-//     image:
-//       "https://media.istockphoto.com/id/1132154377/photo/jeans.webp?b=1&s=170667a&w=0&k=20&c=tZASI7kn4G8LG-XQnu4i4yxDy_Ix-3G-SKUzWV9qa-w=",
-//   },
-//   {
-//     id: 6,
-//     name: "Sneakers",
-//     brand: "Adidas",
-//     price: 2499,
-//     discount: "20% OFF",
-//     quantity: 1,
-//     size: "9",
-//     image:
-//       "https://th.bing.com/th/id/OIP.b_9hj8vi9AJeqLysj2UJXgHaE8?w=193&h=129&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
-//   },
-// ];
-
 export default function shoppingBag() {
   const router = useRouter();
   const {bagItems, removeFromBag, decreaseQuantity, increaseQuantity  } = useBag(); 
-  // const [items, setItems] = useState(bagItems);
+  const [savedBagItems, setSavedBagItems] = useState<BagItem[]>([]);
+
+ 
+  useEffect(() => {
+  const loadBag = async () => {
+    const saved = await AsyncStorage.getItem("bagItems");
+    if (saved) {
+      setSavedBagItems(JSON.parse(saved));
+    } else {
+      setSavedBagItems(bagItems);
+    }
+  };
+  loadBag();
+}, []);
+
+  useEffect(() => {
+    AsyncStorage.setItem("bagItems", JSON.stringify(bagItems));
+    setSavedBagItems(bagItems);
+  }, [bagItems]);
+
+  
   const total = bagItems.reduce(
     (acc: number, item: any) =>
       acc + item.price * (item.quantity || 1),
     0
   );
-  // const addToBag = (item: BagItem): void => {
-  // bagItems((prev: typeof bagItems) => {
-  //   // check if item already exists
-  //   const existing = prev.find((p) => p.id === item.id);
-  //   if (existing) {
-  //     return prev.map((p) =>
-  //       p.id === item.id
-  //         ? { ...p, quantity: (p.quantity || 1) + 1 }
-  //         : p
-  //     );
-  //   }
-  //   return [...prev, { ...item, quantity: 1 }];
-  // });
-// };
+
   if (!global.isAuthenticated) {
     return (
       <View style={styles.container}>
@@ -102,10 +71,10 @@ export default function shoppingBag() {
         <Text style={styles.headerTitle}>Shopping Bag</Text>
       </View>
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        {bagItems.length === 0 ? (
+        {savedBagItems.length === 0 ? (
           <Text>Your bag is empty</Text>
         ) : (
-        bagItems.map((item: BagItem) => (
+        savedBagItems.map((item) => (
           
    
           <View key={item.id} style={styles.itemRow}>
