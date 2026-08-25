@@ -1,3 +1,31 @@
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+type Product = {
+  id: number;
+  name: string;
+  brand: string;
+  price: string;
+  discount?: string;
+  sizes: string[];
+  image: string | { uri: string };
+};
+
+const saveViewedProduct = async (product: Product) => {
+  const storedViewed = await AsyncStorage.getItem("recentlyViewed");
+  let viewed: Product[] = storedViewed ? JSON.parse(storedViewed) : [];
+
+  // Remove duplicates
+  viewed = viewed.filter(p => p.id !== product.id);
+
+  // Add product at the top
+  viewed.unshift(product);
+
+  // Keep only 20 items
+  if (viewed.length > 20) viewed.pop();
+
+  await AsyncStorage.setItem("recentlyViewed", JSON.stringify(viewed));
+};
+
 export const products = [
   {
     id: 1,
@@ -24,7 +52,7 @@ export const products = [
 
   {
     id: 3,
-    name: "Handbag",
+    name: "Womens Jean",
     brand: "DressBerry",
     price: "1599",
     discount: "25% OFF",

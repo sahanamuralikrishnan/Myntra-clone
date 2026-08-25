@@ -13,73 +13,11 @@ import {
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useRef, useState, useEffect } from "react";
 import { handleUrlParams } from "expo-router/build/fork/getStateFromPath-forks";
-import { Heart, ShoppingBag } from "lucide-react-native";
+import { ArrowLeft, Heart, ShoppingBag } from "lucide-react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { products } from "../data/products";
 import { useBag } from "../context/BagContext";
 
-// const products = {
-//   1: {
-//     id: 1,
-//     name: "Casual White T-Shirt",
-//     brand: "Roadster",
-//     price: 499,
-//     discount: "60% OFF",
-//     description:
-//       "Classic white t-shirt made from premium cotton. Perfect for everyday wear with a comfortable regular fit.",
-//     sizes: ["S", "M", "L", "XL"],
-//     images: [
-//       "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1562157873-818bc072f68?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=500&auto=format&fit=crop",
-//     ],
-//   },
-//   2: {
-//     id: 2,
-//     name: "Denim Jacket",
-//     brand: "Levis",
-//     price: 2499,
-//     discount: "40% OFF",
-//     description:
-//       "Classic denim jacket with a modern twist. Features premium quality denim and comfortable fit.",
-//     sizes: ["S", "M", "L", "XL"],
-//     images: [
-//       "https://images.unsplash.com/photo-16232205771623-e0faad42813d?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1542272604-787c383553fd?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1601933973783-43cf8a7d4c5f?w=500&auto=format&fit=crop",
-//     ],
-//   },
-//   3: {
-//     id: 3,
-//     name: "Summer Dress",
-//     brand: "ONLY",
-//     price: 1299,
-//     discount: "50% OFF",
-//     description:
-//       "Flowy summer dress perfect for warm weather. Made from lightweight fabric with a flattering fit.",
-//     sizes: ["XS", "S", "M", "L"],
-//     images: [
-//       "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1623609163859-ca93c959b98a?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1595777457583-95e059d581b8?w=500&auto=format&fit=crop",
-//     ],
-//   },
-
-//   4: {
-//     id: 4,
-//     name: "Classic Sneakers",
-//     brand: "Nike",
-//     price: 3499,
-//     discount: "30% OFF",
-//     description:
-//       "Versatile sneakers that combine style and comfort. Perfect for both casual wear and light exercise.",
-//     sizes: ["UK6", "UK7", "UK8", "UK9", "UK10"],
-//     images: [
-//       "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-1607522370275-f14206abe5d3?w=500&auto=format&fit=crop",
-//       "https://images.unsplash.com/photo-15959590653106-6c9ebd614d3a?w=500&auto=format&fit=crop",
-//     ],
-//   },
-// };
 
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
@@ -109,7 +47,9 @@ export default function ProductDetails() {
     addToBag({ ...product, selectedSize:selectedSize });  // ✅ add product to bag
   router.push("/bag");
 };
-  
+  useEffect(() => {
+  saveViewedProduct(product); // product is the current product details
+}, [product]);
 
   if (isLoading || !product) {
     return (
@@ -119,7 +59,14 @@ export default function ProductDetails() {
     );
   }
   return (
-    <View>
+    <View style={styles.productContainer}>
+      <TouchableOpacity
+        style={styles.backButton}
+        onPress={() => router.back()}
+      >
+        <ArrowLeft size={24} color="#222" />
+      </TouchableOpacity>
+
       <ScrollView>
         {/* Product Image */}
         <View style={styles.carouselContainer}>
@@ -205,6 +152,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fafafa",
     padding: 16,
+  },
+  backButton: {
+    width: 42,
+    height: 42,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: 12,
+    marginBottom: 4,
+    backgroundColor: "#fff",
+    borderRadius: 21,
+    elevation: 3,
+    shadowColor: "#000",
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
   },
   productName: {
     fontSize: 20,
@@ -389,5 +354,27 @@ const styles = StyleSheet.create({
 });
 function addToBag(arg0: { selectedSize: string; } | { selectedSize: string; id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: { uri: string; }; } | { selectedSize: string; id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: string; } | { selectedSize: string; id: number; name: string; brand: string; price: string; discount: string; image: string; sizes?: undefined; }) {
   throw new Error("Function not implemented.");
+}
+
+function saveViewedProduct(product: { id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: { uri: string; }; } | { id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: string; } | { id: number; name: string; brand: string; price: string; sizes: string[]; image: string; discount?: undefined; } | undefined) {
+  if (!product) return;
+
+  void (async () => {
+    try {
+      const stored = await AsyncStorage.getItem("recentlyViewed");
+      const viewedProducts: typeof product[] = stored ? JSON.parse(stored) : [];
+      const updatedProducts = [
+        product,
+        ...viewedProducts.filter((item) => item.id !== product.id),
+      ].slice(0, 20);
+
+      await AsyncStorage.setItem(
+        "recentlyViewed",
+        JSON.stringify(updatedProducts)
+      );
+    } catch (error) {
+      console.warn("Unable to save viewed product", error);
+    }
+  })();
 }
 
