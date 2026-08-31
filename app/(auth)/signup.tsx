@@ -7,16 +7,20 @@ import {
   StyleSheet,
   Image,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
+import { useAuth } from "../../context/AuthContext";
 
-export default function Signup() {
+export default function signup() {
+  const { signup } = useAuth();
   const router = useRouter();
+  const [isloading, setisloading] = useState(false);
 
   // State for form data
   const [formData, setFormData] = useState({
-    fullname: "",
+    fullName: "",
     email: "",
     password: "",
   });
@@ -31,17 +35,17 @@ export default function Signup() {
   // State for password visibility
   const [showPassword, setShowPassword] = useState(false);
 
-//   // Handle input changes
-//   const handleChange = (field, value) => {
-//     setFormData({ ...formData, [field]: value });
-//   };
+  //   // Handle input changes
+  //   const handleChange = (field, value) => {
+  //     setFormData({ ...formData, [field]: value });
+  //   };
 
   // Validation function
   const validateForm = () => {
     let isValid = true;
     const newErrors = { fullname: "", email: "", password: "" };
 
-    if (!formData.fullname.trim()) {
+    if (!formData.fullName.trim()) {
       newErrors.fullname = "Full name is required";
       isValid = false;
     }
@@ -67,15 +71,25 @@ export default function Signup() {
   };
 
   // Handle signup
-  const handleSignup = () => {
+  const handlesignup = async () => {
     if (validateForm()) {
-      global.isAuthenticated = true;
-      router.replace("/(tabs)");
+      try {
+        setisloading(true);
+        await signup(formData.fullName, formData.email, formData.password);
+        router.replace("/(tabs)");
+      } catch (error) {
+        console.error(error);
+      } finally {
+        setisloading(false);
+      }
     }
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.scrollContent}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.scrollContent}
+    >
       {/* Background image */}
       <Image
         source={{
@@ -87,17 +101,23 @@ export default function Signup() {
       {/* Form container */}
       <View style={styles.formContainer}>
         <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join Myntra and discover amazing fashion</Text>
+        <Text style={styles.subtitle}>
+          Join Myntra and discover amazing fashion
+        </Text>
 
         {/* Full Name */}
         <View style={styles.inputGroup}>
           <TextInput
             style={[styles.input, error.fullname && styles.inputError]}
             placeholder="Full Name"
-            value={formData.fullname}
-            onChangeText={(text) => setFormData({ ...formData, fullname: text })}
+            value={formData.fullName}
+            onChangeText={(text) =>
+              setFormData({ ...formData, fullName: text })
+            }
           />
-          {error.fullname ? <Text style={styles.errorText}>{error.fullname}</Text> : null}
+          {error.fullname ? (
+            <Text style={styles.errorText}>{error.fullname}</Text>
+          ) : null}
         </View>
 
         {/* Email */}
@@ -110,8 +130,11 @@ export default function Signup() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          {error.email ? <Text style={styles.errorText}>{error.email}</Text> : null}
+          {error.email ? (
+            <Text style={styles.errorText}>{error.email}</Text>
+          ) : null}
         </View>
+
         {/* Password with toggle */}
         <View style={styles.inputGroup}>
           <View style={styles.passwordContainer}>
@@ -119,7 +142,9 @@ export default function Signup() {
               style={styles.passwordInput}
               placeholder="Password"
               value={formData.password}
-              onChangeText={(text) => setFormData({ ...formData, password: text })}
+              onChangeText={(text) =>
+                setFormData({ ...formData, password: text })
+              }
               secureTextEntry={!showPassword}
             />
             <TouchableOpacity
@@ -133,22 +158,35 @@ export default function Signup() {
               )}
             </TouchableOpacity>
           </View>
-          {error.password ? <Text style={styles.errorText}>{error.password}</Text> : null}
+          {error.password ? (
+            <Text style={styles.errorText}>{error.password}</Text>
+          ) : null}
         </View>
-               {/* Signup button */}
-        <TouchableOpacity style={styles.button} onPress={handleSignup}>
-          <Text style={styles.buttonText}>SIGN UP</Text>
+        {/* Signup button */}
+        <TouchableOpacity
+          style={styles.button}
+          onPress={handlesignup}
+          disabled={isloading}
+        >
+          {isloading ? (
+            <ActivityIndicator color="#fff" />
+          ) : (
+            <Text style={styles.buttonText}>Signup</Text>
+          )}
         </TouchableOpacity>
 
         {/* Back to login link */}
-        <TouchableOpacity style={styles.signupLink} onPress={() => router.push("/login")}>
+        <TouchableOpacity
+          style={styles.signupLink}
+          onPress={() => router.push("/login")}
+        >
           <Text style={styles.signupText}>Already have an account? Login</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
-        const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1 },
   scrollContent: { flexGrow: 1 },
   backgroundImage: { position: "absolute", width: "100%", height: "100%" },
@@ -160,8 +198,18 @@ export default function Signup() {
     margin: 20,
     borderRadius: 12,
   },
-  title: { fontSize: 28, fontWeight: "bold", textAlign: "center", marginBottom: 10 },
-  subtitle: { fontSize: 16, textAlign: "center", marginBottom: 20, color: "#666" },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 10,
+  },
+  subtitle: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#666",
+  },
   inputGroup: { marginBottom: 15 },
   input: {
     borderWidth: 1,
@@ -182,7 +230,12 @@ export default function Signup() {
   },
   passwordInput: { flex: 1, padding: 12 },
   eyeIcon: { paddingHorizontal: 10 },
-  button: { backgroundColor: "#6200ee", padding: 15, borderRadius: 8, marginTop: 10 },
+  button: {
+    backgroundColor: "#6200ee",
+    padding: 15,
+    borderRadius: 8,
+    marginTop: 10,
+  },
   buttonText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
   signupLink: { marginTop: 20 },
   signupText: { textAlign: "center", color: "#6200ee" },

@@ -5,7 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Heart, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import React, { useState , useEffect } from "react";
-import { useBag } from "../context/BagContext";
+import { useBag } from "../../context/BagContext";
 
 interface BagItem {
   id: string | number;

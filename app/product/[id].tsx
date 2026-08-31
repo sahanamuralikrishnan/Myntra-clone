@@ -16,7 +16,7 @@ import { handleUrlParams } from "expo-router/build/fork/getStateFromPath-forks";
 import { ArrowLeft, Heart, ShoppingBag } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { products } from "../data/products";
-import { useBag } from "../context/BagContext";
+import { useBag } from "../../context/BagContext";
 
 
 export default function ProductDetails() {

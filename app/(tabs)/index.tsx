@@ -1,5 +1,5 @@
 import React from "react";
-import { ThemeProvider, ThemeContext } from "@/app/context/ThemeContext";
+import { ThemeProvider, ThemeContext } from "@/context/ThemeContext";
 import Navigator from "../navigator";
 
 

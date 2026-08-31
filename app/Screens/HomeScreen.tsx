@@ -5,7 +5,7 @@ import React, {
   useContext,
   useCallback,
 } from "react";
-import { ThemeProvider, ThemeContext } from "@/app/context/ThemeContext";
+import { ThemeProvider, ThemeContext } from "@/context/ThemeContext";
 import {
   Dimensions,
   Modal,
@@ -22,7 +22,7 @@ import { Search } from "lucide-react-native";
 import navigator from "../navigator";
 import { router, useRouter, useFocusEffect } from "expo-router";
 import { products } from "../data/products";
-import { useBag } from "../context/BagContext";
+import { useBag } from "../../context/BagContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const { width } = Dimensions.get("window");

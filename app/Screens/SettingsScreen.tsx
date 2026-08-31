@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
-import {  ThemeContext } from "@/app/context/ThemeContext";
+import {  ThemeContext } from "@/context/ThemeContext";
 
 
 export default function SettingsScreen () {
