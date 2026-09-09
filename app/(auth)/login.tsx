@@ -31,7 +31,7 @@ export default function Login() {
       await login(email, password);
       router.replace("/(tabs)");
     } catch (error) {
-      console.error(error);
+      console.error("Login error:", error);
     } finally {
       setisloading(false);
     }

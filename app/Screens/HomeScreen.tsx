@@ -7,6 +7,7 @@ import React, {
 } from "react";
 import { ThemeProvider, ThemeContext } from "@/context/ThemeContext";
 import {
+  ActivityIndicator,
   Dimensions,
   Modal,
   ScrollView,
@@ -19,44 +20,46 @@ import {
 import { Image } from "expo-image";
 import { Button } from "react-native";
 import { Search } from "lucide-react-native";
-import navigator from "../navigator";
 import { router, useRouter, useFocusEffect } from "expo-router";
 import { products } from "../data/products";
 import { useBag } from "../../context/BagContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { useAuth } from "../../context/AuthContext";
+import axios from "axios";
+import { AnyAttributeType } from "react-native/Libraries/NativeComponent/NativeComponentRegistry";
 
 const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 200;
-const categories = [
-  {
-    id: "1",
-    title: "Women",
-    image: {
-      uri: "https://th.bing.com/th/id/OIP.d5O8gMUXQ01BreTRxPkbhQHaE8?w=193&h=129&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
-    },
-  },
-  {
-    id: "2",
-    title: "Kids",
-    image: {
-      uri: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
-    },
-  },
-  {
-    id: "3",
-    title: "Beauty",
-    image: {
-      uri: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500",
-    },
-  },
-  {
-    id: "4",
-    title: "Men",
-    image: {
-      uri: "https://th.bing.com/th/id/OIP.GIG4kbLTsB8B6Mk3hJctUAAAAA?w=193&h=193&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
-    },
-  },
-];
+// const categories = [
+//   {
+//     id: "1",
+//     title: "Women",
+//     image: {
+//       uri: "https://th.bing.com/th/id/OIP.d5O8gMUXQ01BreTRxPkbhQHaE8?w=193&h=129&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+//     },
+//   },
+//   {
+//     id: "2",
+//     title: "Kids",
+//     image: {
+//       uri: "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=500",
+//     },
+//   },
+//   {
+//     id: "3",
+//     title: "Beauty",
+//     image: {
+//       uri: "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?w=500",
+//     },
+//   },
+//   {
+//     id: "4",
+//     title: "Men",
+//     image: {
+//       uri: "https://th.bing.com/th/id/OIP.GIG4kbLTsB8B6Mk3hJctUAAAAA?w=193&h=193&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+//     },
+//   },
+// ];
 const deals = [
   {
     id: 1,
@@ -86,16 +89,36 @@ const deals = [
 ];
 
 export default function HomeScreen() {
+  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
+  const [product, setProduct] = useState<any>(null);
+  const [categories, setCategories] = useState<any>(null);
+  const { user } = useAuth();
 
- const  router=useRouter();
- const { addToBag } = useBag();
- const handleProductPress = (productId: number) => {
-  if(!global.isAuthenticated){
-    router.push("/login");
-  } else {
-    router.push(`/product/${productId}`)}
- }
-  
+  const { addToBag } = useBag();
+  const handleProductPress = (productId: number) => {
+    if (!user) {
+      router.push("/login");
+    } else {
+      router.push(`/product/${productId}`);
+    }
+  };
+  useEffect(() => {
+    const fetchproduct = async () => {
+      try {
+        setIsLoading(true);
+        const cat = await axios.get("http://192.168.18.27:5000/category");
+        const product = await axios.get("http://192.168.18.27:5000/product");
+        setCategories(cat.data);
+        setProduct(product.data);
+      } catch (error) {
+        setIsLoading(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchproduct();
+  }, []);
   const [searchText, setSearchText] = useState("");
   const [selectedProduct, setSelectedProduct] = useState<
     (typeof products)[number] | null
@@ -115,7 +138,7 @@ export default function HomeScreen() {
       };
 
       loadRecentlyViewed();
-    }, [])
+    }, []),
   );
 
   // ✅ Get theme from context
@@ -138,30 +161,20 @@ export default function HomeScreen() {
     setSelectedProduct(null);
     router.push("/bag");
   };
-  const handleAddToWishlist = async (
-    product: (typeof products)[number]
-  ) => {
+  const handleAddToWishlist = async (product: (typeof products)[number]) => {
     const savedWishlist = await AsyncStorage.getItem("wishlist");
     const wishlistItems: (typeof products)[number][] = savedWishlist
       ? JSON.parse(savedWishlist)
       : [];
 
-    const updatedWishlist = wishlistItems.some(
-      (item) => item.id === product.id
-    )
-      ? wishlistItems.map((item) =>
-          item.id === product.id ? product : item
-        )
+    const updatedWishlist = wishlistItems.some((item) => item.id === product.id)
+      ? wishlistItems.map((item) => (item.id === product.id ? product : item))
       : [...wishlistItems, product];
 
-    await AsyncStorage.setItem(
-      "wishlist",
-      JSON.stringify(updatedWishlist)
-    );
+    await AsyncStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
 
     router.push("/wishlist");
   };
-  
 
   return (
     <ScrollView
@@ -211,24 +224,30 @@ export default function HomeScreen() {
           showsHorizontalScrollIndicator={false}
           style={styles.categoryRow}
         >
-          {categories.map((c) => (
+          
+          {isLoading ? (
+        <ActivityIndicator size="large" color="#ff3f6c" />
+      ) : !categories || categories.length === 0 ? (
+        <Text>No categories Available</Text>
+        ) : (
+          
+          categories.map((category:any) => (
             <TouchableOpacity
-              key={c.id}
+              key={category._id}
               style={styles.categoryItem}
               activeOpacity={0.7}
               onPress={() => router.push("/categories")}
-              
             >
               <Image
-                source={c.image}
+                source={category.image}
                 style={styles.categoryImage}
                 contentFit="cover"
               />
               <Text style={[styles.categoryLabel, { color: theme.text }]}>
-                {c.title}
+                {category.name}
               </Text>
             </TouchableOpacity>
-          ))}
+          )))}
         </ScrollView>
       </View>
 
@@ -254,14 +273,11 @@ export default function HomeScreen() {
       </View>
 
       {/* Trending Products */}
-      
 
       {recentlyViewed.length > 0 && (
         <View style={styles.section}>
-          <TouchableOpacity
-            onPress={() => router.push("/recentlyViewed")}
-          >
-            <Text style={[styles.sectionTitle, { color: theme.text }]}> 
+          <TouchableOpacity onPress={() => router.push("/recentlyViewed")}>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
               RECENTLY VIEWED
             </Text>
           </TouchableOpacity>
@@ -293,62 +309,65 @@ export default function HomeScreen() {
                   style={styles.productImage}
                   contentFit="cover"
                 />
-                <Text style={[styles.productName, { color: theme.text }]}> 
+                <Text style={[styles.productName, { color: theme.text }]}>
                   {item.name}
                 </Text>
-                <Text style={{ color: theme.primary }}>
-                  ₹{item.price}
-                </Text>
+                <Text style={{ color: theme.primary }}>₹{item.price}</Text>
               </TouchableOpacity>
             ))}
-            
           </ScrollView>
           <View style={styles.sectionHeader}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          TRENDING PRODUCTS
-        </Text>
-      </View>
+            <Text style={[styles.sectionTitle, { color: theme.text }]}>
+              TRENDING PRODUCTS
+            </Text>
+          </View>
         </View>
       )}
 
       <View style={styles.productGrid}>
-        {products.map((p) => (
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#ff3f6c" />
+        ) : !product || product.length === 0 ? (
+          <Text>No products Available</Text>
+        ) : (
+          product.map((product: any) => (
           <TouchableOpacity
-            key={p.id}
+            key={product._id}
             style={[styles.productCard, { backgroundColor: theme.card }]}
-            onPress = {() =>handleProductPress(p.id)}
+            onPress={() => handleProductPress(product.id)}
           >
             <Image
-              source={p.image}
+              source={product.image}
               style={styles.productImage}
               contentFit="cover"
             />
             <Text style={[styles.productName, { color: theme.text }]}>
-              {p.name}
+              {product.name}
             </Text>
-            <Text style={{ color: theme.primary }}>₹{p.price}</Text>
+            <Text style={{ color: theme.primary }}>₹{product.price}</Text>
             <Text style={[styles.productBrand, { color: theme.text }]}>
-              {p.brand}
+              {product.brand}
             </Text>
             <Text style={[styles.productDiscount, { color: theme.text }]}>
-              {p.discount}
+              {product.discount}
             </Text>
             <View style={styles.actions}>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: theme.primary }]}
-                onPress={() => handleAddToBag(p)}
+                onPress={() => handleAddToBag(product)}
               >
                 <Text style={styles.actionText}>Add to Cart</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.actionBtn, { backgroundColor: theme.primary }]}
-                onPress={() => handleAddToWishlist(p)}
+                onPress={() => handleAddToWishlist(product)}
               >
                 <Text style={styles.actionText}>Wishlist</Text>
               </TouchableOpacity>
             </View>
           </TouchableOpacity>
-        ))}
+          ))
+        )}
       </View>
       <Modal
         visible={selectedProduct !== null}
@@ -359,9 +378,7 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.sizeModal}>
             <Text style={styles.sizeModalTitle}>Select Size</Text>
-            <Text style={styles.sizeModalProduct}>
-              {selectedProduct?.name}
-            </Text>
+            <Text style={styles.sizeModalProduct}>{selectedProduct?.name}</Text>
             <View style={styles.sizeOptions}>
               {selectedProduct?.sizes?.map((size) => (
                 <TouchableOpacity

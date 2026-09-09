@@ -1,0 +1,55 @@
+[
+  {
+    "id": 1,
+    "name": "Men",
+    "subcategories": [
+      "T-Shirts",
+      "Shirts",
+      "Jeans",
+      "Trousers",
+      "Suits",
+      "Activewear"
+    ],
+    "image": "https://th.bing.com/th/id/OIP.ozqrouXltp_EClmNtQCI_gHaG4?w=211&h=195&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+    "productid":{"$oid": "6a9a8c44f99844e9b1bdd63d"}
+  },
+  {
+    "id": 2,
+    "name": "Women",
+    "subcategories": [
+      "Dresses",
+      "Tops",
+      "Ethnic Wear",
+      "Western Wear",
+      "Activewear"
+    ],
+    "image": "https://th.bing.com/th/id/OIP.PYK2EwkPHD4Z1BEWwWzHaAHaJQ?w=193&h=241&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+    "productid": {"$oid": "6a9a8cbdf99844e9b1bdd63e"}
+  },
+  {
+    "id": 3,
+    "name": "Kids",
+    "subcategories": [
+      "Boys Clothing",
+      "Girls Clothing",
+      "Infants",
+      "Toys",
+      "School Essentials"
+    ],
+    "image": "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&auto=format&fit=crop",
+    "productid": {"$oid": "6a9a8cf0f99844e9b1bdd63f"}
+  },
+  {
+    "id": 4,
+    "name": "Beauty",
+    "subcategories": [
+      "Makeup",
+      "Skincare",
+      "Haircare",
+      "Fragrances",
+      "Personal Care"
+    ],
+    "image": "https://img.freepik.com/premium-photo/beauty-product-lipstic_1295550-2692.jpg",
+    "productid": {"$oid": "6a9a8d0cf99844e9b1bdd640"}
+  }
+]

@@ -35,7 +35,7 @@ export const products = [
     discount: "50% OFF",
     sizes: ["S", "M", "L", "XL"],
     image: {
-      uri: "https://media.istockphoto.com/id/1081873610/photo/young-woman-on-beach-with-sun-dress.webp?b=1&s=170667a&w=0&k=20&c=sHNTnj-gPOBQ5Ydn04_px3dl_Deq91dLHoyApnSA-EQ=",
+      uri: "https://th.bing.com/th/id/OIP.m0ILJn17bBKGJ2KWtf9azAHaHa?w=194&h=194&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
     },
   },
 

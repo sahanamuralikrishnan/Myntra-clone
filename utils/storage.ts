@@ -1,19 +1,79 @@
-import * as SecureStore from "expo-secure-store";
-import Reacf from "react";
-import { Platform } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export const saveuserdata = async (name: string, email: string) => {
-  await SecureStore.setItemAsync("userName", name);
-  await SecureStore.setItemAsync("userEmail", email);
+  await AsyncStorage.setItem("userName", String(name));
+  await AsyncStorage.setItem("userEmail", String(email));
 };
 
 export const getuserdata = async () => {
-  const name = await SecureStore.getItemAsync("userName");
-  const email = await SecureStore.getItemAsync("userEmail");
-  return { name, email };
+  const name = await AsyncStorage.getItem("userName");
+  const email = await AsyncStorage.getItem("userEmail");
+  return { name: name ?? "", email: email ?? "" };
 };
 
 export const clearuserdata = async () => {
-  await SecureStore.deleteItemAsync("userName");
-  await SecureStore.deleteItemAsync("userEmail");
+  await AsyncStorage.removeItem("userName");
+  await AsyncStorage.removeItem("userEmail");
 };
+;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// import * as SecureStore from "expo-secure-store";
+// import { Platform } from "react-native";
+
+// const getStorageValue = async (key: string) => {
+//   if (Platform.OS === "web") {
+//     return localStorage.getItem(key);
+//   }
+
+//   return SecureStore.getItemAsync(key);
+// };
+
+// const setStorageValue = async (key: string, value: string) => {
+//   if (Platform.OS === "web") {
+//     localStorage.setItem(key, value);
+//     return;
+//   }
+
+//   await SecureStore.setItemAsync(key, value);
+// };
+
+// const removeStorageValue = async (key: string) => {
+//   if (Platform.OS === "web") {
+//     localStorage.removeItem(key);
+//     return;
+//   }
+
+//   await SecureStore.deleteItemAsync(key);
+// };
+
+
+

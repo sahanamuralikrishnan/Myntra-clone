@@ -36,7 +36,7 @@ export default function ProductDetails() {
   }, []);
 
   const handleToaddBag = () => {
-    if (!global.isAuthenticated) {
+    if (!(globalThis as typeof globalThis & { isAuthenticated?: boolean }).isAuthenticated) {
       router.push("/login");
       return;
     }

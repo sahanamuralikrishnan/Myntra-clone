@@ -78,10 +78,12 @@ export default function signup() {
         await signup(formData.fullName, formData.email, formData.password);
         router.replace("/(tabs)");
       } catch (error) {
-        console.error(error);
+        console.error("Signup error:", error);
+        
       } finally {
         setisloading(false);
       }
+      router.replace("/(tabs)");
     }
   };
 
@@ -177,7 +179,7 @@ export default function signup() {
 
         {/* Back to login link */}
         <TouchableOpacity
-          style={styles.signupLink}
+          style={styles.loginLink}
           onPress={() => router.push("/login")}
         >
           <Text style={styles.signupText}>Already have an account? Login</Text>
@@ -237,6 +239,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   buttonText: { color: "#fff", textAlign: "center", fontWeight: "bold" },
-  signupLink: { marginTop: 20 },
+  loginLink: { marginTop: 20 },
   signupText: { textAlign: "center", color: "#6200ee" },
 });

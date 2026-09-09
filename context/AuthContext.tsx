@@ -2,13 +2,14 @@
 import { getuserdata, saveuserdata, clearuserdata } from "../utils/storage";
 import { createContext, useEffect, useState, useContext } from "react";
 import React from "react";
+import axios from "axios";
 
 type AuthContextType = {
   isAuthenticated: boolean;
   user: { name: string; email: string } | null;
   signup: (fullName: string, email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
 };
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,15 +29,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   const signup = async (fullName: string, email: string, password: string) => {
-    const res = await fetch("http://192.168.18.27:5000/user/signup", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ fullName, email, password }),
+    const res = await axios.post("http://192.168.18.27:5000/user/signup", {
+      fullName,
+      email,
+      password,
     });
-    const data = await res.json();
+    const data = res.data;
     if (data.user) {
-      await saveuserdata(data.user.fullname, data.user.email);
-      setUser({ name: data.user.fullname, email: data.user.email });
+      await saveuserdata(data.user.fullName, data.user.email);
+      setUser({ name: data.user.fullName, email: data.user.email });
       setIsAuthenticated(true);
     } else {
       throw new Error(data.message || "signup failed");
@@ -44,15 +45,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const login = async (email: string, password: string) => {
-    const res = await fetch("http://192.168.18.27:5000/user/login", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
+    const res = await axios.post("http://192.168.18.27:5000/user/login", {
+      email,
+      password,
+      headers: { "Content-Type": "application/json" }
     });
-    const data = await res.json();
+    const data = await res.data;
     if (data.user) {
-      await saveuserdata(data.user.fullname, data.user.email);
-      setUser({ name: data.user.fullname, email: data.user.email });
+      await saveuserdata(data.user.fullName, data.user.email);
+      setUser({ name: data.user.fullName, email: data.user.email });
       setIsAuthenticated(true);
     } else {
       throw new Error(data.message || "Login failed");
