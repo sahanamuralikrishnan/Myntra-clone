@@ -17,7 +17,8 @@ import { ArrowLeft, Heart, ShoppingBag } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { products } from "../data/products";
 import { useBag } from "../../context/BagContext";
-
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 
 export default function ProductDetails() {
   const { id } = useLocalSearchParams();
@@ -25,18 +26,29 @@ export default function ProductDetails() {
   const { width } = useWindowDimensions();
   const [selectedSize, setSelectedSize] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
-  const product = products.find((p) => p.id === Number(id));
-  const {addToBag} = useBag();
   
+  const { addToBag } = useBag();
+  const [product, setProduct] = useState<any>(null);
 
   useEffect(() => {
-    const timer = setTimeout(() => setIsLoading(false), 1000);
-    return () => clearTimeout(timer);
+    const fetchproduct = async () => {
+      try {
+        setIsLoading(true);
+        const product = await axios.get(`http://192.168.18.27:5000/product/${id}`);
+        setProduct(product.data);
+      } catch (error) {
+        setIsLoading(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchproduct();
   }, []);
 
   const handleToaddBag = () => {
-    if (!(globalThis as typeof globalThis & { isAuthenticated?: boolean }).isAuthenticated) {
+    if (!user) {
       router.push("/login");
       return;
     }
@@ -44,12 +56,12 @@ export default function ProductDetails() {
       alert("Please select the size");
       return;
     }
-    addToBag({ ...product, selectedSize:selectedSize });  // ✅ add product to bag
-  router.push("/bag");
-};
+    addToBag({ ...product, selectedSize: selectedSize }); // ✅ add product to bag
+    router.push("/bag");
+  };
   useEffect(() => {
-  saveViewedProduct(product); // product is the current product details
-}, [product]);
+    saveViewedProduct(product); // product is the current product details
+  }, [product]);
 
   if (isLoading || !product) {
     return (
@@ -60,10 +72,7 @@ export default function ProductDetails() {
   }
   return (
     <View style={styles.productContainer}>
-      <TouchableOpacity
-        style={styles.backButton}
-        onPress={() => router.back()}
-      >
+      <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
         <ArrowLeft size={24} color="#222" />
       </TouchableOpacity>
 
@@ -104,7 +113,7 @@ export default function ProductDetails() {
           <View style={styles.sizeSectionWrapper}>
             <Text style={styles.sizeTitle}>Select Size</Text>
             <View style={styles.sizeGrid}>
-              {product.sizes.map((size) => (
+              {product.sizes.map((size:any) => (
                 <TouchableOpacity
                   key={size}
                   onPress={() => setSelectedSize(size)}
@@ -352,17 +361,82 @@ const styles = StyleSheet.create({
     marginLeft: 8,
   },
 });
-function addToBag(arg0: { selectedSize: string; } | { selectedSize: string; id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: { uri: string; }; } | { selectedSize: string; id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: string; } | { selectedSize: string; id: number; name: string; brand: string; price: string; discount: string; image: string; sizes?: undefined; }) {
+function addToBag(
+  arg0:
+    | { selectedSize: string }
+    | {
+        selectedSize: string;
+        id: number;
+        name: string;
+        brand: string;
+        price: string;
+        discount: string;
+        sizes: string[];
+        image: { uri: string };
+      }
+    | {
+        selectedSize: string;
+        id: number;
+        name: string;
+        brand: string;
+        price: string;
+        discount: string;
+        sizes: string[];
+        image: string;
+      }
+    | {
+        selectedSize: string;
+        id: number;
+        name: string;
+        brand: string;
+        price: string;
+        discount: string;
+        image: string;
+        sizes?: undefined;
+      },
+) {
   throw new Error("Function not implemented.");
 }
 
-function saveViewedProduct(product: { id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: { uri: string; }; } | { id: number; name: string; brand: string; price: string; discount: string; sizes: string[]; image: string; } | { id: number; name: string; brand: string; price: string; sizes: string[]; image: string; discount?: undefined; } | undefined) {
+function saveViewedProduct(
+  product:
+    | {
+        id: number;
+        name: string;
+        brand: string;
+        price: string;
+        discount: string;
+        sizes: string[];
+        image: { uri: string };
+      }
+    | {
+        id: number;
+        name: string;
+        brand: string;
+        price: string;
+        discount: string;
+        sizes: string[];
+        image: string;
+      }
+    | {
+        id: number;
+        name: string;
+        brand: string;
+        price: string;
+        sizes: string[];
+        image: string;
+        discount?: undefined;
+      }
+    | undefined,
+) {
   if (!product) return;
 
   void (async () => {
     try {
       const stored = await AsyncStorage.getItem("recentlyViewed");
-      const viewedProducts: typeof product[] = stored ? JSON.parse(stored) : [];
+      const viewedProducts: (typeof product)[] = stored
+        ? JSON.parse(stored)
+        : [];
       const updatedProducts = [
         product,
         ...viewedProducts.filter((item) => item.id !== product.id),
@@ -370,11 +444,10 @@ function saveViewedProduct(product: { id: number; name: string; brand: string; p
 
       await AsyncStorage.setItem(
         "recentlyViewed",
-        JSON.stringify(updatedProducts)
+        JSON.stringify(updatedProducts),
       );
     } catch (error) {
       console.warn("Unable to save viewed product", error);
     }
   })();
 }
-

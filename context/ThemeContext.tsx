@@ -2,6 +2,7 @@ import React, { createContext, useEffect, useState, ReactNode } from "react";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Appearance } from "react-native";
 import { themes } from "../config/themes";
+import react from "react";
 
 
 

@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from "react-native";
 import { useRouter } from "expo-router";
 
@@ -17,9 +18,9 @@ import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { X, Search } from "lucide-react-native";
-
+import axios from "axios";
 
 const categories = [
   {
@@ -129,7 +130,32 @@ export default function Categories() {
   const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(
     null,
   );
+  const [isLoading, setIsLoading] = useState(false);
+    
+    const [categories, setCategories] = useState<any>(null);
+useEffect(() => {
+    const fetchproduct = async () => {
+      try {
+        setIsLoading(true);
+        const cat = await axios.get("http://192.168.18.27:5000/category");
+        const product = await axios.get("http://192.168.18.27:5000/product");
+        setCategories(cat.data);
+      } catch (error) {
+        setIsLoading(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchproduct();
+  }, []);
 
+    if(isLoading) {
+      return (
+        <View style={styles.loaderContainer}>
+          <ActivityIndicator size="large" color="#ff3f6c" />
+        </View>
+      );
+    }
   const handleSearch = (query: string) => {
     setSearchQuery(query);
     setSelectedCategory(null);
@@ -151,22 +177,22 @@ export default function Categories() {
     setSearchQuery("");
   };
   const filtercategories = categories.filter(
-    (category) =>
-      category.subcategories.some((subcategory) =>
+    (category:any) =>
+      category.subcategories.some((subcategory:any) =>
         subcategory.toLowerCase().includes(searchQuery.toLowerCase()),
       ) ||
       category.products.some(
-        (product) =>
+        (product:any) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.brand.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
   );
 
   const selectedCategoryData = selectedCategory
-    ? categories.find((cat) => cat.id === selectedCategory)
+    ? categories.find((cat:any) => cat.id === selectedCategory)
     : null;
   const renderProducts = (products: (typeof categories)[0]["products"]) => {
-    return products.map((product) => (
+    return products.map((product:any) => (
       <TouchableOpacity
         key={product.id}
         onPress={() => router.push(`/product/${product.id}`)}
@@ -213,23 +239,25 @@ export default function Categories() {
       <ScrollView>
         {!selectedCategory && (
           <View>
-            {filtercategories.map((category) => (
+            {filtercategories.map((category:any) => (
               <TouchableOpacity
-                key={category.id}
+                key={category._id}
                 style={styles.categoryBox}
-                onPress={() => handleCategorySelect(category.id)}
+                onPress={() => handleCategorySelect(category._id)}
               >
                 <Text style={styles.categoryName}>{category.name}</Text>
 
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={styles.subcategoryRow}>
-                    {category.subcategories.map((subcategory, index) => (
+                    {category.subcategories.map((subcategory:any, index:any) => (
                       <TouchableOpacity
                         key={index}
                         style={styles.subcategoryBox}
                         onPress={() => handleSubCategorySelect(subcategory)}
                       >
-                        <Text style={styles.subcategoryText}>{subcategory}</Text>
+                        <Text style={styles.subcategoryText}>
+                          {subcategory}
+                        </Text>
                       </TouchableOpacity>
                     ))}
                   </View>
@@ -261,7 +289,7 @@ export default function Categories() {
               showsHorizontalScrollIndicator={false}
               style={styles.subcategoriesScroll}
             >
-              {selectedCategoryData.subcategories.map((sub, index) => (
+              {selectedCategoryData.subcategories.map((sub:any, index:any) => (
                 <TouchableOpacity
                   key={index}
                   style={[
@@ -289,6 +317,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     padding: 16,
+  },
+   loaderContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "#fff",
   },
   header: {
     marginBottom: 12,
@@ -438,6 +472,4 @@ const styles = StyleSheet.create({
   //   color: '#333',
   //   fontSize: 14,
   // },
-
-  
 });
