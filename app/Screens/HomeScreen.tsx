@@ -239,7 +239,7 @@ export default function HomeScreen() {
               onPress={() => router.push("/categories")}
             >
        <Image
-  source={{ uri: category.image[0] }}
+  source={{ uri: category.image }}
   style={styles.categoryImage}
   contentFit="cover"
 />

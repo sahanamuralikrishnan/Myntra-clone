@@ -37,16 +37,16 @@ import axios from "axios";
 //     image:
 //       "https://th.bing.com/th/id/OIP.ozqrouXltp_EClmNtQCI_gHaG4?w=211&h=195&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
 
-    products: [
-      {
-        id: 1,
-        name: "Casual White T-Shirt",
-        brand: "Roadster",
-        price: 499,
-        discount: "60% OFF",
-        image:
-          "https://i.pinimg.com/originals/80/5f/c4/805fc4b6d9cca0acace82db28258defa.jpg",
-      }]//       {
+    // products: [
+    //   {
+    //     id: 1,
+    //     name: "Casual White T-Shirt",
+    //     brand: "Roadster",
+    //     price: 499,
+    //     discount: "60% OFF",
+    //     image:
+    //       "https://i.pinimg.com/originals/80/5f/c4/805fc4b6d9cca0acace82db28258defa.jpg",
+    //   }//       {
 //         id: 2,
 //         name: "Denim Jacket",
 //         brand: "Levis",
@@ -127,12 +127,12 @@ import axios from "axios";
 export default function Categories() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<any>([]);
    
   const [isLoading, setIsLoading] = useState(false);
     
-    const [categories, setCategories] = useState<any>(null);
+  const [categories, setCategories] = useState<any>(null);
 useEffect(() => {
     const fetchproduct = async () => {
       try {
@@ -167,7 +167,7 @@ useEffect(() => {
     setSelectedSubCategory(null);
   };
 
-  const handleCategorySelect = (categoryId: number) => {
+  const handleCategorySelect = (categoryId: string) => {
     setSelectedCategory(categoryId);
     setSelectedSubCategory(null);
     setSearchQuery("");
@@ -176,18 +176,22 @@ useEffect(() => {
     setSelectedSubCategory(subCategoryId);
     setSearchQuery("");
   };
-  const filtercategories = categories?.filter(
-    (category:any) =>
-      category.subcategories.some((subcategory:any) =>
-        subcategory.toLowerCase().includes(searchQuery.toLowerCase()),
+  const filtercategories = categories?.filter((category: any) => {
+    const query = searchQuery.toLowerCase();
+    if (!query) return true;
+
+    return (
+      category.name.toLowerCase().includes(query) ||
+      (category.subcategories ?? []).some((subcategory: string) =>
+        subcategory.toLowerCase().includes(query),
       ) ||
-      (category.products ?? []).some(
-        (product:any) =>
-          product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          product.brand.toLowerCase().includes(searchQuery.toLowerCase()),
-      ),
-  );
-    [];
+      (category.productid ?? []).some(
+        (product: any) =>
+          product.name.toLowerCase().includes(query) ||
+          product.brand.toLowerCase().includes(query),
+      )
+    );
+  });
 
   const selectedCategoryData = selectedCategory
     ? categories.find((cat:any) => cat._id === selectedCategory)
@@ -196,7 +200,7 @@ useEffect(() => {
     return products.map((product:any) => (
       <TouchableOpacity
         key={product._id}
-        onPress={() => router.push(`/product/${product.id}`)}
+        onPress={() => router.push(`/product/${product._id}`)}
       >
         <Image
           source={{
@@ -271,10 +275,10 @@ useEffect(() => {
                     ))}
                   </View>
                 </ScrollView>
-<Image
-  source={{ uri: category.image[0] }}
-  style={styles.categoryImage}
-/>
+                <Image
+                  source={{ uri: category.image }}
+                  style={styles.categoryImage}
+                />
               </TouchableOpacity>
             ))}
           </View>
