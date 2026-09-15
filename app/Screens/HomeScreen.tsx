@@ -238,11 +238,11 @@ export default function HomeScreen() {
               activeOpacity={0.7}
               onPress={() => router.push("/categories")}
             >
-              <Image
-                source={category.image}
-                style={styles.categoryImage}
-                contentFit="cover"
-              />
+       <Image
+  source={{ uri: category.image[0] }}
+  style={styles.categoryImage}
+  contentFit="cover"
+/>
               <Text style={[styles.categoryLabel, { color: theme.text }]}>
                 {category.name}
               </Text>
@@ -334,13 +334,17 @@ export default function HomeScreen() {
           <TouchableOpacity
             key={product._id}
             style={[styles.productCard, { backgroundColor: theme.card }]}
-            onPress={() => handleProductPress(product.id)}
+            onPress={() => handleProductPress(product._id)}
           >
-            <Image
-              source={product.image}
-              style={styles.productImage}
-              contentFit="cover"
-            />
+          <Image
+  source={
+    typeof product.image === "string"
+      ? { uri: product.image }
+      : product.image
+  }
+  style={styles.productImage}
+  contentFit="cover"
+/>
             <Text style={[styles.productName, { color: theme.text }]}>
               {product.name}
             </Text>

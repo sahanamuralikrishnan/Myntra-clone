@@ -22,20 +22,20 @@ import { useEffect, useState } from "react";
 import { X, Search } from "lucide-react-native";
 import axios from "axios";
 
-const categories = [
-  {
-    id: 1,
-    name: "Men",
-    subcategories: [
-      "T-Shirts",
-      "Shirts",
-      "Jeans",
-      "Trousers",
-      "Suits",
-      "Activewear",
-    ],
-    image:
-      "https://th.bing.com/th/id/OIP.ozqrouXltp_EClmNtQCI_gHaG4?w=211&h=195&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+// const categories = [
+//   {
+//     id: 1,
+//     name: "Men",
+//     subcategories: [
+//       "T-Shirts",
+//       "Shirts",
+//       "Jeans",
+//       "Trousers",
+//       "Suits",
+//       "Activewear",
+//     ],
+//     image:
+//       "https://th.bing.com/th/id/OIP.ozqrouXltp_EClmNtQCI_gHaG4?w=211&h=195&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
 
     products: [
       {
@@ -46,90 +46,90 @@ const categories = [
         discount: "60% OFF",
         image:
           "https://i.pinimg.com/originals/80/5f/c4/805fc4b6d9cca0acace82db28258defa.jpg",
-      },
-      {
-        id: 2,
-        name: "Denim Jacket",
-        brand: "Levis",
-        price: 2499,
-        discount: "40% OFF",
-        image:
-          "https://th.bing.com/th/id/OIP.KFqpfKh88odMwkX17Rs3MwHaJQ?w=193&h=241&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
-      },
-    ],
-  },
-  {
-    id: 2,
-    name: "Women",
-    subcategories: [
-      "Dresses",
-      "Tops",
-      "Ethnic Wear",
-      "Western Wear",
-      "Activewear",
-    ],
-    image:
-      "https://th.bing.com/th/id/OIP.PYK2EwkPHD4Z1BEWwWzHaAHaJQ?w=193&h=241&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+      }]//       {
+//         id: 2,
+//         name: "Denim Jacket",
+//         brand: "Levis",
+//         price: 2499,
+//         discount: "40% OFF",
+//         image:
+//           "https://th.bing.com/th/id/OIP.KFqpfKh88odMwkX17Rs3MwHaJQ?w=193&h=241&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
+//       },
+//     ],
+//   },
+//   {
+//     id: 2,
+//     name: "Women",
+//     subcategories: [
+//       "Dresses",
+//       "Tops",
+//       "Ethnic Wear",
+//       "Western Wear",
+//       "Activewear",
+//     ],
+//     image:
+//       "https://th.bing.com/th/id/OIP.PYK2EwkPHD4Z1BEWwWzHaAHaJQ?w=193&h=241&c=7&r=0&o=7&dpr=1.6&pid=1.7&rm=3",
 
-    products: [
-      {
-        id: 3,
-        name: "Summer Dress",
-        brand: "ONLY",
-        price: 299,
-        discount: "50% OFF",
-        image:
-          "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500&auto=format&fit=crop",
-      },
-    ],
-  },
-  {
-    id: 3,
-    name: "Kids",
-    subcategories: [
-      "Boys Clothing",
-      "Girls Clothing",
-      "Infants",
-      "Toys",
-      "School Essentials",
-    ],
-    image:
-      "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&auto=format&fit=crop",
-    products: [],
-  },
-  {
-    id: 4,
-    name: "Beauty",
-    subcategories: [
-      "Makeup",
-      "Skincare",
-      "Haircare",
-      "Fragrances",
-      "Personal Care",
-    ],
-    image:
-      "https://img.freepik.com/premium-photo/beauty-product-lipstic_1295550-2692.jpg",
+//     products: [
+//       {
+//         id: 3,
+//         name: "Summer Dress",
+//         brand: "ONLY",
+//         price: 299,
+//         discount: "50% OFF",
+//         image:
+//           "https://images.unsplash.com/photo-1515372039744-b8f02a3ae446?w=500&auto=format&fit=crop",
+//       },
+//     ],
+//   },
+//   {
+//     id: 3,
+//     name: "Kids",
+//     subcategories: [
+//       "Boys Clothing",
+//       "Girls Clothing",
+//       "Infants",
+//       "Toys",
+//       "School Essentials",
+//     ],
+//     image:
+//       "https://images.unsplash.com/photo-1622290291468-a28f7a7dc6a8?w=500&auto=format&fit=crop",
+//     products: [],
+//   },
+//   {
+//     id: 4,
+//     name: "Beauty",
+//     subcategories: [
+//       "Makeup",
+//       "Skincare",
+//       "Haircare",
+//       "Fragrances",
+//       "Personal Care",
+//     ],
+//     image:
+//       "https://img.freepik.com/premium-photo/beauty-product-lipstic_1295550-2692.jpg",
 
-    products: [],
-  },
-  {
-    id: 5,
-    name: "Accessories",
-    subcategories: ["Watches", "Bags", "Jewellery", "Sunglasses", "Belts"],
-    image:
-      "http://smileestore.com/cdn/shop/collections/Women_s_Accessories_The_Finishing_Touch_to_Every_Look.jpg?v=1746119009",
+//     products: [],
+//   },
+//   {
+//     id: 5,
+//     name: "Accessories",
+//     subcategories: ["Watches", "Bags", "Jewellery", "Sunglasses", "Belts"],
+//     image:
+//       "http://smileestore.com/cdn/shop/collections/Women_s_Accessories_The_Finishing_Touch_to_Every_Look.jpg?v=1746119009",
 
-    products: [],
-  },
-];
+//     products: [],
+//   },
+// ];
+
+
 
 export default function Categories() {
   const router = useRouter();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
-  const [selectedSubCategory, setSelectedSubCategory] = useState<string | null>(
-    null,
-  );
+  const [selectedSubCategory, setSelectedSubCategory] = useState<any>([]);
+   
   const [isLoading, setIsLoading] = useState(false);
     
     const [categories, setCategories] = useState<any>(null);
@@ -176,28 +176,37 @@ useEffect(() => {
     setSelectedSubCategory(subCategoryId);
     setSearchQuery("");
   };
-  const filtercategories = categories.filter(
+  const filtercategories = categories?.filter(
     (category:any) =>
       category.subcategories.some((subcategory:any) =>
         subcategory.toLowerCase().includes(searchQuery.toLowerCase()),
       ) ||
-      category.products.some(
+      (category.products ?? []).some(
         (product:any) =>
           product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
           product.brand.toLowerCase().includes(searchQuery.toLowerCase()),
       ),
   );
+    [];
 
   const selectedCategoryData = selectedCategory
-    ? categories.find((cat:any) => cat.id === selectedCategory)
+    ? categories.find((cat:any) => cat._id === selectedCategory)
     : null;
-  const renderProducts = (products: (typeof categories)[0]["products"]) => {
+  const renderProducts = (products:any) => {
     return products.map((product:any) => (
       <TouchableOpacity
-        key={product.id}
+        key={product._id}
         onPress={() => router.push(`/product/${product.id}`)}
       >
-        <Image source={{ uri: product.image }} style={styles.productImage} />
+        <Image
+          source={{
+            uri:
+              typeof product.image === "string"
+                ? product.image
+                : product.image?.uri,
+          }}
+          style={styles.productImage}
+        />
         <View style={styles.productCard}>
           <Text style={styles.productBrand}>{product.brand}</Text>
           <Text style={styles.productName}>{product.name}</Text>
@@ -223,7 +232,7 @@ useEffect(() => {
           <Search size={20} color="#666" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search..."
+            placeholder="Search for products,brands and more"
             value={searchQuery}
             onChangeText={handleSearch}
           />
@@ -239,7 +248,7 @@ useEffect(() => {
       <ScrollView>
         {!selectedCategory && (
           <View>
-            {filtercategories.map((category:any) => (
+            {filtercategories?.map((category:any) => (
               <TouchableOpacity
                 key={category._id}
                 style={styles.categoryBox}
@@ -262,11 +271,10 @@ useEffect(() => {
                     ))}
                   </View>
                 </ScrollView>
-
-                <Image
-                  source={{ uri: category.image }}
-                  style={styles.categoryImage}
-                />
+<Image
+  source={{ uri: category.image[0] }}
+  style={styles.categoryImage}
+/>
               </TouchableOpacity>
             ))}
           </View>
@@ -296,14 +304,14 @@ useEffect(() => {
                     styles.subcategoryButton,
                     selectedSubCategory === sub && styles.selectedSubcategory,
                   ]}
-                  onPress={() => handleSubCategorySelect(sub)} // ✅ Added
+                  onPress={() => handleSubCategorySelect(sub)}
                 >
-                  <Text style={styles.subcategoryText}>{sub}</Text> // ✅ Added
+                  <Text style={styles.subcategoryText}>{sub}</Text>
                 </TouchableOpacity>
               ))}
             </ScrollView>
             <View style={styles.productGrid}>
-              {renderProducts(selectedCategoryData.products)}
+              {renderProducts(selectedCategoryData.productid ?? [])}
             </View>
           </View>
         )}
