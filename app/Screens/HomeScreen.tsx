@@ -88,7 +88,7 @@ const deals = [
   },
 ];
 
-export default function HomeScreen() {
+ export default function HomeScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [product, setProduct] = useState<any>(null);
@@ -120,20 +120,18 @@ export default function HomeScreen() {
     fetchproduct();
   }, []);
   const [searchText, setSearchText] = useState("");
-  const [selectedProduct, setSelectedProduct] = useState<
-    (typeof products)[number] | null
-  >(null);
-  const [recentlyViewed, setRecentlyViewed] = useState<
-    (typeof products)[number][]
-  >([]);
+  const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
+  const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
+
 
   useFocusEffect(
     useCallback(() => {
       const loadRecentlyViewed = async () => {
         const saved = await AsyncStorage.getItem("recentlyViewed");
 
-        if (saved) {
-          setRecentlyViewed(JSON.parse(saved));
+            if (saved) {
+          const parsed = JSON.parse(saved);
+          setRecentlyViewed(parsed.filter((item: any) => item && item._id));
         }
       };
 
@@ -161,20 +159,23 @@ export default function HomeScreen() {
     setSelectedProduct(null);
     router.push("/bag");
   };
-  const handleAddToWishlist = async (product: (typeof products)[number]) => {
-    const savedWishlist = await AsyncStorage.getItem("wishlist");
-    const wishlistItems: (typeof products)[number][] = savedWishlist
-      ? JSON.parse(savedWishlist)
-      : [];
-
-    const updatedWishlist = wishlistItems.some((item) => item.id === product.id)
-      ? wishlistItems.map((item) => (item.id === product.id ? product : item))
-      : [...wishlistItems, product];
-
-    await AsyncStorage.setItem("wishlist", JSON.stringify(updatedWishlist));
-
-    router.push("/wishlist");
+  const handleAddToWishlist = async (product: any) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    try {
+      await axios.post("http://192.168.18.27:5000/wishlist", {
+        userId: user._id,
+        productId: product._id,
+      });
+      router.push("/wishlist");
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+    }
   };
+
+
 
   return (
     <ScrollView
@@ -238,11 +239,13 @@ export default function HomeScreen() {
               activeOpacity={0.7}
               onPress={() => router.push("/categories")}
             >
-       <Image
+<Image
   source={{ uri: category.image }}
   style={styles.categoryImage}
   contentFit="cover"
 />
+
+
               <Text style={[styles.categoryLabel, { color: theme.text }]}>
                 {category.name}
               </Text>
@@ -289,8 +292,9 @@ export default function HomeScreen() {
           >
             {recentlyViewed.map((item) => (
               <TouchableOpacity
-                key={item.id}
-                onPress={() => router.push(`/product/${item.id}`)}
+                             key={item._id}
+                onPress={() => router.push(`/product/${item._id}`)}
+ 
                 style={[
                   styles.productCard,
                   {
@@ -300,15 +304,13 @@ export default function HomeScreen() {
                   },
                 ]}
               >
-                <Image
-                  source={
-                    typeof item.image === "string"
-                      ? { uri: item.image }
-                      : item.image
-                  }
+                 <Image
+                  source={{ uri: item.images?.[0] }}
                   style={styles.productImage}
                   contentFit="cover"
                 />
+
+
                 <Text style={[styles.productName, { color: theme.text }]}>
                   {item.name}
                 </Text>
@@ -336,15 +338,12 @@ export default function HomeScreen() {
             style={[styles.productCard, { backgroundColor: theme.card }]}
             onPress={() => handleProductPress(product._id)}
           >
-          <Image
-  source={
-    typeof product.image === "string"
-      ? { uri: product.image }
-      : product.image
-  }
+                    <Image
+  source={{ uri: product.images?.[0] }}
   style={styles.productImage}
   contentFit="cover"
 />
+
             <Text style={[styles.productName, { color: theme.text }]}>
               {product.name}
             </Text>

@@ -202,13 +202,8 @@ useEffect(() => {
         key={product._id}
         onPress={() => router.push(`/product/${product._id}`)}
       >
-        <Image
-          source={{
-            uri:
-              typeof product.image === "string"
-                ? product.image
-                : product.image?.uri,
-          }}
+              <Image
+          source={{ uri: product.images?.[0] }}
           style={styles.productImage}
         />
         <View style={styles.productCard}>
@@ -263,6 +258,7 @@ useEffect(() => {
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
                   <View style={styles.subcategoryRow}>
                     {category.subcategories.map((subcategory:any, index:any) => (
+
                       <TouchableOpacity
                         key={index}
                         style={styles.subcategoryBox}
@@ -301,11 +297,11 @@ useEffect(() => {
               showsHorizontalScrollIndicator={false}
               style={styles.subcategoriesScroll}
             >
-              {selectedCategoryData.subcategories.map((sub:any, index:any) => (
+                          {selectedCategoryData.subcategories.map((sub:any, index:any) => (
+
                 <TouchableOpacity
                   key={index}
                   style={[
-                    styles.subcategoryButton,
                     selectedSubCategory === sub && styles.selectedSubcategory,
                   ]}
                   onPress={() => handleSubCategorySelect(sub)}
@@ -323,6 +319,7 @@ useEffect(() => {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

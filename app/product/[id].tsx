@@ -79,15 +79,12 @@ export default function ProductDetails() {
       <ScrollView>
         {/* Product Image */}
         <View style={styles.carouselContainer}>
-          <Image
-            source={
-              typeof product.image === "string"
-                ? { uri: product.image }
-                : product.image
-            }
+             <Image
+            source={{ uri: product.images?.[0] }}
             style={[styles.productImage, { width }]}
             resizeMode="cover"
           />
+
         </View>
 
         {/* Product Info */}
@@ -398,48 +395,16 @@ function addToBag(
   throw new Error("Function not implemented.");
 }
 
-function saveViewedProduct(
-  product:
-    | {
-        id: number;
-        name: string;
-        brand: string;
-        price: string;
-        discount: string;
-        sizes: string[];
-        image: { uri: string };
-      }
-    | {
-        id: number;
-        name: string;
-        brand: string;
-        price: string;
-        discount: string;
-        sizes: string[];
-        image: string;
-      }
-    | {
-        id: number;
-        name: string;
-        brand: string;
-        price: string;
-        sizes: string[];
-        image: string;
-        discount?: undefined;
-      }
-    | undefined,
-) {
+function saveViewedProduct(product: any) {
   if (!product) return;
 
   void (async () => {
     try {
       const stored = await AsyncStorage.getItem("recentlyViewed");
-      const viewedProducts: (typeof product)[] = stored
-        ? JSON.parse(stored)
-        : [];
+      const viewedProducts: any[] = stored ? JSON.parse(stored) : [];
       const updatedProducts = [
         product,
-        ...viewedProducts.filter((item) => item.id !== product.id),
+        ...viewedProducts.filter((item: any) => item._id !== product._id),
       ].slice(0, 20);
 
       await AsyncStorage.setItem(

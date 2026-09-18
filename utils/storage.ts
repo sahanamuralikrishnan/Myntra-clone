@@ -1,17 +1,20 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export const saveuserdata = async (name: string, email: string) => {
+export const saveuserdata = async (_id: string, name: string, email: string) => {
+  await AsyncStorage.setItem("userId", String(_id));
   await AsyncStorage.setItem("userName", String(name));
   await AsyncStorage.setItem("userEmail", String(email));
 };
 
 export const getuserdata = async () => {
+  const _id = await AsyncStorage.getItem("userId");
   const name = await AsyncStorage.getItem("userName");
   const email = await AsyncStorage.getItem("userEmail");
-  return { name: name ?? "", email: email ?? "" };
+  return {_id, name, email};
 };
 
 export const clearuserdata = async () => {
+  await AsyncStorage.removeItem("userId");
   await AsyncStorage.removeItem("userName");
   await AsyncStorage.removeItem("userEmail");
 };
