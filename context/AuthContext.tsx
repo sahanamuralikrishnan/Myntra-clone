@@ -6,7 +6,7 @@ import axios from "axios";
 
 type AuthContextType = {
   isAuthenticated: boolean;
-  user: { _id: string; name: string; email: string } | null;
+    user: { _id: string; name: string; email: string; theme?: string } | null;
   signup: (fullName: string, email: string, password: string) => Promise<void>;
   login: (email: string, password: string) => Promise<void>;
   logout: () => void;
@@ -16,7 +16,7 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [user, setUser] = useState<{ _id: string; name: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ _id: string; name: string; email: string; theme?: string } | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -37,30 +37,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const data = await res.data.user;
     if (data.user) {
       await saveuserdata(data.user._id, data.user.fullName, data.user.email);
-      setUser({ _id: data.user._id, name: data.user.fullName, email: data.user.email });
+            setUser({ _id: data.user._id, name: data.user.fullName, email: data.user.email, theme: data.user.theme });
+
       setIsAuthenticated(true);
     } else {
       throw new Error(data.message || "signup failed");
     }
   };
-
-  const login = async (email: string, password: string) => {
+    const login = async (email: string, password: string) => {
     const res = await axios.post("http://192.168.18.27:5000/user/login", {
       email,
       password,
-      // headers: { "Content-Type": "application/json" }
     });
     const data = res.data;
     if (data.user) {
       await saveuserdata(data.user._id, data.user.fullname, data.user.email);
-      setUser({ _id: data.user._id, name: data.user.fullname, email: data.user.email });
+      setUser({ _id: data.user._id, name: data.user.fullname, email: data.user.email, theme: data.user.theme });
       setIsAuthenticated(true);
     } else {
       throw new Error(data.message || "Login failed");
     }
   };
-
-  const logout = async () => {
+    const logout = async () => {
     await clearuserdata();
     setUser(null);
     setIsAuthenticated(false);

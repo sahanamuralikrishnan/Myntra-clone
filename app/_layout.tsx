@@ -20,16 +20,18 @@ export default function RootLayout() {
 
   return (
     <BagProvider>
+    <AuthProvider>
     <AppThemeProvider>
-      <AuthProvider>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(tabs)"  options={{ headerShown: false }} />
         <Stack.Screen name="(auth)/login" options={{ headerShown: false }}/>
         {/* <Stack.Screen name="(auth)" /> */}
         <Stack.Screen name="modal" options={{ presentation: 'modal', title: 'Modal' }} />
       </Stack>
-      <StatusBar style="auto" /></AuthProvider>
+      <StatusBar style="auto" />
     </AppThemeProvider>
+    </AuthProvider>
     </BagProvider>
+
   );
 }

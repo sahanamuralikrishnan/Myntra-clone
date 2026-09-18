@@ -1,4 +1,7 @@
 import { useRouter } from "expo-router";
+import { useContext } from "react";
+import { ThemeContext } from "@/context/ThemeContext";
+import { useAuth } from "@/context/AuthContext";
 import {
   ChevronRight,
   CreditCard,
@@ -17,10 +20,12 @@ import {
   TouchableOpacity,
   ScrollView,
 } from "react-native";
-
 export default function Profile() {
   const router = useRouter();
-
+  const { user, isAuthenticated, logout } = useAuth();
+  const themeContext = useContext(ThemeContext);
+  if (!themeContext) return null;
+  const { theme, setTheme } = themeContext;
   const menuItems = [
     { icon: Package, label: "Orders", route: "/orders" },
     { icon: Heart, label: "Wishlist", route: "/wishlist" },
@@ -28,13 +33,11 @@ export default function Profile() {
     { icon: MapPin, label: "Addresses", route: "/addresses" },
     { icon: Settings, label: "Payment Settings", route: "/settings" },
   ];
-
   const handleLogout = () => {
-    global.isAuthenticated = false;
+    logout();
     router.replace("/");
   };
-
-  if (!global.isAuthenticated) {
+   if (!isAuthenticated) {
     return (
       <View style={styles.container}>
         <View style={styles.header}>
@@ -57,9 +60,9 @@ export default function Profile() {
   }
 
   return (
-    <View style={styles.container}>
+       <View style={[styles.container, { backgroundColor: theme.background }]}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+                <Text style={[styles.headerTitle, { color: theme.text }]}>Profile</Text>
       </View>
 
   <ScrollView
@@ -74,26 +77,47 @@ export default function Profile() {
 
     {/* User Details BELOW avatar */}
     <View style={styles.userDetails}>
-      <Text style={styles.userName}>Sahana</Text>
-      <Text style={styles.email} numberOfLines={1} ellipsizeMode="tail">
-        sahana@gmail.com
+            <Text style={[styles.userName, { color: theme.text }]}>{user?.name}</Text>
+      <Text style={[styles.email, { color: theme.text }]} numberOfLines={1} ellipsizeMode="tail">
+        {user?.email}
       </Text>
     </View>
   </View>
-
         {menuItems.map((item) => (
-          <TouchableOpacity
+                    <TouchableOpacity
             key={item.label}
-            style={styles.menuItem}
-            onPress={() => router.push(item.route)}
+            style={[styles.menuItem, { backgroundColor: theme.card }]}
+                        onPress={() => router.push(item.route as any)}
           >
             <View style={styles.menuItemLeft}>
-              <item.icon size={24} color="#3e3e3e" />
-              <Text style={styles.menuItemLabel}>{item.label}</Text>
+              <item.icon size={24} color={theme.text} />
+              <Text style={[styles.menuItemLabel, { color: theme.text }]}>{item.label}</Text>
             </View>
-            <ChevronRight size={24} color="#3e3e3e" />
+            <ChevronRight size={24} color={theme.text} />
           </TouchableOpacity>
         ))}
+                      <View style={[styles.menuItem, { backgroundColor: theme.card }]}>
+          <Text style={[styles.menuItemLabel, { color: theme.text }]}>Theme</Text>
+          <View style={{ flexDirection: "row", gap: 8 }}>
+            {(["light", "dark", "festive"] as const).map((option) => (
+              <TouchableOpacity
+                key={option}
+                onPress={() => setTheme(option)}
+                style={{
+                  paddingVertical: 6,
+                  paddingHorizontal: 12,
+                  borderRadius: 6,
+                  backgroundColor: option === "light" ? "#eee" : option === "dark" ? "#333" : "#ffe4f0",
+                }}
+              >
+                <Text style={{ color: option === "dark" ? "#fff" : "#333", fontSize: 12 }}>
+                  {option}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+
       </ScrollView>
 
       <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
