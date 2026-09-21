@@ -27,9 +27,6 @@ export default function ProductDetails() {
   const [selectedSize, setSelectedSize] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
-
-  
-  const { addToBag } = useBag();
   const [product, setProduct] = useState<any>(null);
 
   useEffect(() => {
@@ -47,18 +44,27 @@ export default function ProductDetails() {
     fetchproduct();
   }, []);
 
-  const handleToaddBag = () => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-    if (!selectedSize) {
-      alert("Please select the size");
-      return;
-    }
-    addToBag({ ...product, selectedSize: selectedSize }); // ✅ add product to bag
+const handleToaddBag = async () => {
+  if (!user) {
+    router.push("/login");
+    return;
+  }
+  if (!selectedSize) {
+    alert("Please select the size");
+    return;
+  }
+  try {
+    await axios.post("http://192.168.18.27:5000/bag", {
+      userId: user._id,
+      productId: product._id,
+      size: selectedSize,
+      quantity: 1,
+    });
     router.push("/bag");
-  };
+  } catch (error) {
+    console.error("Error adding to bag:", error);
+  }
+};
   useEffect(() => {
     saveViewedProduct(product); // product is the current product details
   }, [product]);

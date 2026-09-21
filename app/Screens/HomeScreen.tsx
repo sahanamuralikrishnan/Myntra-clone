@@ -95,7 +95,6 @@ const deals = [
   const [categories, setCategories] = useState<any>(null);
   const { user } = useAuth();
 
-  const { addToBag } = useBag();
   const handleProductPress = (productId: number) => {
     if (!user) {
       router.push("/login");
@@ -148,34 +147,41 @@ const deals = [
     setSelectedProduct(product);
   };
 
-  const handleSizeSelect = (size: string) => {
-    if (!selectedProduct) return;
-
-    addToBag({
-      ...selectedProduct,
-      selectedSize: size,
+ const handleSizeSelect = async (size: string) => {
+  if (!selectedProduct) return;
+  if (!user) {
+    setSelectedProduct(null);
+    router.push("/login");
+    return;
+  }
+  try {
+    await axios.post("http://192.168.18.27:5000/bag", {
+      userId: user._id,
+      productId: selectedProduct._id,
+      size: size,
       quantity: 1,
     });
     setSelectedProduct(null);
     router.push("/bag");
-  };
-  const handleAddToWishlist = async (product: any) => {
-    if (!user) {
-      router.push("/login");
-      return;
-    }
-    try {
-      await axios.post("http://192.168.18.27:5000/wishlist", {
-        userId: user._id,
-        productId: product._id,
-      });
-      router.push("/wishlist");
-    } catch (error) {
-      console.error("Error adding to wishlist:", error);
-    }
-  };
-
-
+  } catch (error) {
+    console.error("Error adding to bag:", error);
+  }
+};
+const handleAddToWishlist = async (product: any) => {
+  if (!user) {
+    router.push("/login");
+    return;
+  }
+  try {
+    await axios.post("http://192.168.18.27:5000/wishlist", {
+      userId: user._id,
+      productId: product._id,
+    });
+    router.push("/wishlist");
+  } catch (error) {
+    console.error("Error adding to wishlist:", error);
+  }
+};
 
   return (
     <ScrollView
