@@ -69,7 +69,7 @@ const handleToaddBag = async () => {
     saveViewedProduct(product); // product is the current product details
   }, [product]);
 
-  if (isLoading || !product) {
+  if (!product) {
     return (
       <View style={styles.loaderContainer}>
         <ActivityIndicator size="large" color="#ff3f6c" />

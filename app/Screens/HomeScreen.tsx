@@ -9,6 +9,7 @@ import { ThemeProvider, ThemeContext } from "@/context/ThemeContext";
 import {
   ActivityIndicator,
   Dimensions,
+  Keyboard,
   Modal,
   ScrollView,
   StyleSheet,
@@ -182,6 +183,9 @@ const handleAddToWishlist = async (product: any) => {
     console.error("Error adding to wishlist:", error);
   }
 };
+const filteredProducts = product?.filter((p: any) =>
+  p.name?.toLowerCase().includes(searchText.toLowerCase())
+);
 
   return (
     <ScrollView
@@ -205,7 +209,7 @@ const handleAddToWishlist = async (product: any) => {
           value={searchText}
           onChangeText={setSearchText}
         />
-        <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7}>
+        <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7} onPress={() => Keyboard.dismiss()}>
           <Text style={[styles.searchIcon, { color: theme.text }]}>🔍</Text>
         </TouchableOpacity>
       </View>
@@ -335,10 +339,10 @@ const handleAddToWishlist = async (product: any) => {
       <View style={styles.productGrid}>
         {isLoading ? (
           <ActivityIndicator size="large" color="#ff3f6c" />
-        ) : !product || product.length === 0 ? (
+        ) : !filteredProducts || filteredProducts.length === 0 ? (
           <Text>No products Available</Text>
         ) : (
-          product.map((product: any) => (
+          filteredProducts.map((product: any) => (
           <TouchableOpacity
             key={product._id}
             style={[styles.productCard, { backgroundColor: theme.card }]}

@@ -3,6 +3,7 @@ import { useContext } from "react";
 import { ThemeContext } from "@/context/ThemeContext";
 import { useAuth } from "@/context/AuthContext";
 import {
+  Bell,
   ChevronRight,
   CreditCard,
   Heart,
@@ -29,6 +30,7 @@ export default function Profile() {
   const menuItems = [
     { icon: Package, label: "Orders", route: "/orders" },
     { icon: Heart, label: "Wishlist", route: "/wishlist" },
+    { icon: Bell, label: "Notifications", route: "/notification-settings" },
     { icon: CreditCard, label: "Payment Methods", route: "/payments" },
     { icon: MapPin, label: "Addresses", route: "/addresses" },
     { icon: Settings, label: "Payment Settings", route: "/settings" },

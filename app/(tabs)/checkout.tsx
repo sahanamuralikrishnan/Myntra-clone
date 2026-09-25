@@ -2,15 +2,36 @@ import React, { useState } from "react";
 import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
 import { useRouter } from "expo-router";
 import { MapPin, CreditCard } from "lucide-react-native";
+import { useAuth } from "@/context/AuthContext";
+import axios from "axios";
 
 export default function Checkout() {
   const router = useRouter();
+  const [loading , setLoading] = useState(false);
+  const {user} = useAuth();
   const [activeSection, setActiveSection] = useState("shipping");
 
-  const handlePlaceOrder = () => {
-    router.push("/orders");
-  };
+  const [street, setStreet] = useState("123 Main Street, Apt 4B");
+  const [city, setCity] = useState("New York");
+  const [state, setState] = useState("NY");
+  const [postalCode, setPostalCode] = useState("10001");
+  const [country, setCountry] = useState("United States");
 
+  const handlePlaceOrder = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    try {
+      await axios.post(`http://192.168.18.27:5000/order/create/${user._id}`, {
+        shippingAddress: { street, city, state, postalCode, country },
+        paymentMethod: "card",
+      });
+      router.push("/orders");
+    } catch (error) {
+      console.error("Error placing order:", error);
+    }
+  };
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -27,15 +48,14 @@ export default function Checkout() {
           </View>
           <View style={styles.form}>
             <TextInput style={styles.input} placeholder="Full Name" defaultValue="John Doe" />
-            <TextInput style={styles.input} placeholder="Address Line 1" defaultValue="123 Main Street" />
-            <TextInput style={styles.input} placeholder="Address Line 2" defaultValue="Apt 4B" />
+            <TextInput style={styles.input} placeholder="Address Line 1" value={street} onChangeText={setStreet} />
             <View style={styles.row}>
-              <TextInput style={[styles.input, styles.halfInput]} placeholder="City" defaultValue="New York" />
-              <TextInput style={[styles.input, styles.halfInput]} placeholder="State" defaultValue="NY" />
+              <TextInput style={[styles.input, styles.halfInput]} placeholder="City" value={city} onChangeText={setCity} />
+              <TextInput style={[styles.input, styles.halfInput]} placeholder="State" value={state} onChangeText={setState} />
             </View>
             <View style={styles.row}>
-              <TextInput style={[styles.input, styles.halfInput]} placeholder="Postal Code" defaultValue="10001" />
-              <TextInput style={[styles.input, styles.halfInput]} placeholder="Country" defaultValue="United States" />
+              <TextInput style={[styles.input, styles.halfInput]} placeholder="Postal Code" value={postalCode} onChangeText={setPostalCode} />
+              <TextInput style={[styles.input, styles.halfInput]} placeholder="Country" value={country} onChangeText={setCountry} />
             </View>
           </View>
         </View>

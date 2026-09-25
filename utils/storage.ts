@@ -1,4 +1,22 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
+import { Platform } from "react-native";
+
+// The login token (JWT) is a secret, so it goes in the phone's secure keychain
+export const saveauthtoken = async (token: string) => {
+  if (Platform.OS === "web") return AsyncStorage.setItem("authToken", token);
+  await SecureStore.setItemAsync("authToken", token);
+};
+
+export const getauthtoken = async () => {
+  if (Platform.OS === "web") return AsyncStorage.getItem("authToken");
+  return SecureStore.getItemAsync("authToken");
+};
+
+export const clearauthtoken = async () => {
+  if (Platform.OS === "web") return AsyncStorage.removeItem("authToken");
+  await SecureStore.deleteItemAsync("authToken");
+};
 
 export const saveuserdata = async (_id: string, name: string, email: string) => {
   await AsyncStorage.setItem("userId", String(_id));
