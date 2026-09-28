@@ -196,6 +196,12 @@ useEffect(() => {
   const selectedCategoryData = selectedCategory
     ? categories.find((cat:any) => cat._id === selectedCategory)
     : null;
+
+  // Show only products tagged with the tapped subcategory, or all of them if none is tapped
+  const filteredProducts = (selectedCategoryData?.productid ?? []).filter((product: any) =>
+    !selectedSubCategory || product.subcategory === selectedSubCategory
+  );
+
   const renderProducts = (products:any) => {
     return products.map((product:any) => (
       <TouchableOpacity
@@ -205,6 +211,7 @@ useEffect(() => {
               <Image
           source={{ uri: product.images?.[0] }}
           style={styles.productImage}
+          contentFit="cover"
         />
         <View style={styles.productCard}>
           <Text style={styles.productBrand}>{product.brand}</Text>
@@ -262,7 +269,10 @@ useEffect(() => {
                       <TouchableOpacity
                         key={index}
                         style={styles.subcategoryBox}
-                        onPress={() => handleSubCategorySelect(subcategory)}
+                        onPress={() => {
+                          handleCategorySelect(category._id);
+                          handleSubCategorySelect(subcategory);
+                        }}
                       >
                         <Text style={styles.subcategoryText}>
                           {subcategory}
@@ -274,6 +284,7 @@ useEffect(() => {
                 <Image
                   source={{ uri: category.image }}
                   style={styles.categoryImage}
+                  contentFit="cover"
                 />
               </TouchableOpacity>
             ))}
@@ -302,6 +313,7 @@ useEffect(() => {
                 <TouchableOpacity
                   key={index}
                   style={[
+                    styles.subcategoryButton,
                     selectedSubCategory === sub && styles.selectedSubcategory,
                   ]}
                   onPress={() => handleSubCategorySelect(sub)}
@@ -311,7 +323,11 @@ useEffect(() => {
               ))}
             </ScrollView>
             <View style={styles.productGrid}>
-              {renderProducts(selectedCategoryData.productid ?? [])}
+              {filteredProducts.length > 0 ? (
+                renderProducts(filteredProducts)
+              ) : (
+                <Text style={styles.noProductsText}>No products in this subcategory yet</Text>
+              )}
             </View>
           </View>
         )}
@@ -476,6 +492,11 @@ const styles = StyleSheet.create({
     flexWrap: "wrap", // ✅ allow wrapping to next line
     justifyContent: "space-between", // ✅ even spacing between items
     padding: 16, // ✅ space around the grid
+  },
+  noProductsText: {
+    fontSize: 14,
+    color: "#888",
+    padding: 16,
   },
   // subcategoryText: {
   //   color: '#333',

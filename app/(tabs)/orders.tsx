@@ -1,35 +1,124 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, ScrollView, TouchableOpacity, Image, StyleSheet, ActivityIndicator } from "react-native";
+import {
+  View,
+  Text,
+  ScrollView,
+  TouchableOpacity,
+  Image,
+  StyleSheet,
+  ActivityIndicator,
+  Alert,
+} from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { ArrowLeft, MapPin, ChevronRight, Package } from "lucide-react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "@/utils/api";
+
+const PAGE_SIZE = 5;
 
 export default function Orders() {
   const router = useRouter();
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
-  const[isloading ,setIsLoading] = useState(true);
-  const [order,setorder] = useState<any>(null);
-  const { user }= useAuth();
-  const fetchorder = async () => {
-    if (!user) return;
+  const [isloading, setIsLoading] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [order, setorder] = useState<any[]>([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const { user, token } = useAuth();
+
+  const headers = { Authorization: `Bearer ${token}` };
+
+  const fetchorder = async (pageToLoad: number, append: boolean) => {
+    if (!user || !token) return;
     try {
-      setIsLoading(true);
-      const product = await axios.get(`http://192.168.18.27:5000/order/user/${user._id}`);
-      setorder(product.data);
+      append ? setIsLoadingMore(true) : setIsLoading(true);
+      const res = await axios.get(
+        `${API_URL}/order/user/${user._id}?page=${pageToLoad}&limit=${PAGE_SIZE}`,
+        { headers }
+      );
+      const { orders, page: currentPage, totalPages: pages } = res.data;
+      setorder((prev) => (append ? [...prev, ...orders] : orders));
+      setPage(currentPage);
+      setTotalPages(pages);
     } catch (error) {
       console.error("Error fetching orders:", error);
     } finally {
-      setIsLoading(false);
+      append ? setIsLoadingMore(false) : setIsLoading(false);
     }
   };
 
   // Reload orders every time the user opens this tab
   useFocusEffect(
     useCallback(() => {
-      fetchorder();
-    }, [user])
+      fetchorder(1, false);
+    }, [user, token])
   );
+
+  const loadMore = () => {
+    if (page < totalPages && !isLoadingMore) {
+      fetchorder(page + 1, true);
+    }
+  };
+
+  const toggleOrderDetails = (orderId: string) => {
+    setExpandedOrder(expandedOrder === orderId ? null : orderId);
+  };
+
+  const cancelOrder = (orderId: string) => {
+    Alert.alert("Cancel Order", "Are you sure you want to cancel this order?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes, Cancel",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            await axios.post(
+              `${API_URL}/order/${orderId}/cancel`,
+              { reason: "Cancelled by user" },
+              { headers }
+            );
+            fetchorder(1, false);
+          } catch (error: any) {
+            Alert.alert("Could not cancel", error.response?.data?.message || "Please try again");
+          }
+        },
+      },
+    ]);
+  };
+
+  const requestReturn = (orderId: string) => {
+    Alert.alert("Request Return", "Request a return for this order?", [
+      { text: "No", style: "cancel" },
+      {
+        text: "Yes, Request Return",
+        onPress: async () => {
+          try {
+            await axios.post(
+              `${API_URL}/order/${orderId}/return`,
+              { reason: "Return requested by user" },
+              { headers }
+            );
+            fetchorder(1, false);
+          } catch (error: any) {
+            Alert.alert("Could not request return", error.response?.data?.message || "Please try again");
+          }
+        },
+      },
+    ]);
+  };
+
+  const reorder = async (orderId: string) => {
+    try {
+      const res = await axios.post(`${API_URL}/order/${orderId}/reorder`, {}, { headers });
+      const { added, skipped } = res.data;
+      const skippedText = skipped.length ? ` ${skipped.length} item(s) are no longer available.` : "";
+      Alert.alert("Added to bag", `${added.length} item(s) added to your bag.${skippedText}`);
+    } catch (error: any) {
+      Alert.alert("Could not reorder", error.response?.data?.message || "Please try again");
+    }
+  };
+
   if (isloading) {
     return (
       <View style={styles.container}>
@@ -38,9 +127,6 @@ export default function Orders() {
     );
   }
 
-  const toggleOrderDetails = (orderId: string) => {
-    setExpandedOrder(expandedOrder === orderId ? null : orderId);
-  };
   if (!order || order.length === 0) {
     return (
       <View style={styles.container}>
@@ -122,10 +208,39 @@ export default function Orders() {
                     </View>
                   ))}
                 </View>
+
+                <View style={styles.actionsRow}>
+                  {order.status === "Processing" && (
+                    <TouchableOpacity style={styles.actionButton} onPress={() => cancelOrder(order._id)}>
+                      <Text style={styles.actionButtonText}>Cancel Order</Text>
+                    </TouchableOpacity>
+                  )}
+                  {order.status === "Delivered" && !order.returnRequest && (
+                    <TouchableOpacity style={styles.actionButton} onPress={() => requestReturn(order._id)}>
+                      <Text style={styles.actionButtonText}>Request Return</Text>
+                    </TouchableOpacity>
+                  )}
+                  {order.returnRequest && (
+                    <Text style={styles.returnStatus}>Return: {order.returnRequest.status}</Text>
+                  )}
+                  <TouchableOpacity style={styles.actionButton} onPress={() => reorder(order._id)}>
+                    <Text style={styles.actionButtonText}>Reorder</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             )}
           </View>
         ))}
+
+        {page < totalPages && (
+          <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore} disabled={isLoadingMore}>
+            {isLoadingMore ? (
+              <ActivityIndicator size="small" color="#ff3f6c" />
+            ) : (
+              <Text style={styles.loadMoreText}>Load More</Text>
+            )}
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </View>
   );
@@ -143,7 +258,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: 6,
-    
+
   },
 
   header: {
@@ -182,4 +297,16 @@ const styles = StyleSheet.create({
   timelineStatus: { fontSize: 14, fontWeight: "600", color: "#333" },
   timelineLocation: { fontSize: 13, color: "#666" },
   timelineTime: { fontSize: 12, color: "#999" },
+  actionsRow: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14 },
+  actionButton: {
+    borderWidth: 1,
+    borderColor: "#ff3f6c",
+    borderRadius: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 14,
+  },
+  actionButtonText: { color: "#ff3f6c", fontSize: 13, fontWeight: "600" },
+  returnStatus: { fontSize: 13, color: "#666", alignSelf: "center" },
+  loadMoreButton: { alignItems: "center", padding: 16 },
+  loadMoreText: { color: "#ff3f6c", fontWeight: "600" },
 });
