@@ -10,7 +10,6 @@ import {
   LogOut,
   MapPin,
   Package,
-  Settings,
   User,
 } from "lucide-react-native";
 import React from "react";
@@ -33,7 +32,6 @@ export default function Profile() {
     { icon: Bell, label: "Notifications", route: "/notification-settings" },
     { icon: CreditCard, label: "Payment Methods", route: "/payments" },
     { icon: MapPin, label: "Addresses", route: "/addresses" },
-    { icon: Settings, label: "Payment Settings", route: "/settings" },
   ];
   const handleLogout = () => {
     logout();

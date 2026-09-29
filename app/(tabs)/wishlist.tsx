@@ -6,6 +6,7 @@ import { Heart, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "@/utils/api";
 
 export default function Wishlist() {
   const router = useRouter();
@@ -18,7 +19,7 @@ export default function Wishlist() {
     if (!user) return;
     try {
       setIsLoading(true);
-      const response = await axios.get(`http://192.168.18.27:5000/wishlist/${user._id}`);
+      const response = await axios.get(`${API_URL}/wishlist/${user._id}`);
       setWishlist(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error("Error fetching wishlist:", error);
@@ -35,13 +36,12 @@ export default function Wishlist() {
   // ✅ Delete item
   const handleDelete = async (itemId: string) => {
     try {
-      await axios.delete(`http://192.168.18.27:5000/wishlist/${itemId}`);
+      await axios.delete(`${API_URL}/wishlist/${itemId}`);
       fetchWishlist(); // refresh after delete
     } catch (error) {
       console.error("Error deleting wishlist item:", error);
     }
   };
-
   // ✅ Loader
   if (isLoading) {
     return (

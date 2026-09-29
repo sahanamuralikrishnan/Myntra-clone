@@ -27,6 +27,8 @@ import { useBag } from "../../context/BagContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
+import { API_URL } from "@/utils/api";
+
 import { AnyAttributeType } from "react-native/Libraries/NativeComponent/NativeComponentRegistry";
 
 const { width } = Dimensions.get("window");
@@ -89,7 +91,7 @@ const deals = [
   },
 ];
 
- export default function HomeScreen() {
+export default function HomeScreen() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [product, setProduct] = useState<any>(null);
@@ -107,8 +109,8 @@ const deals = [
     const fetchproduct = async () => {
       try {
         setIsLoading(true);
-        const cat = await axios.get("http://192.168.18.27:5000/category");
-        const product = await axios.get("http://192.168.18.27:5000/product");
+        const cat = await axios.get(`${API_URL}/category`);
+        const product = await axios.get(`${API_URL}/product`);
         setCategories(cat.data);
         setProduct(product.data);
       } catch (error) {
@@ -123,13 +125,12 @@ const deals = [
   const [selectedProduct, setSelectedProduct] = useState<any | null>(null);
   const [recentlyViewed, setRecentlyViewed] = useState<any[]>([]);
 
-
   useFocusEffect(
     useCallback(() => {
       const loadRecentlyViewed = async () => {
         const saved = await AsyncStorage.getItem("recentlyViewed");
 
-            if (saved) {
+        if (saved) {
           const parsed = JSON.parse(saved);
           setRecentlyViewed(parsed.filter((item: any) => item && item._id));
         }
@@ -148,44 +149,44 @@ const deals = [
     setSelectedProduct(product);
   };
 
- const handleSizeSelect = async (size: string) => {
-  if (!selectedProduct) return;
-  if (!user) {
-    setSelectedProduct(null);
-    router.push("/login");
-    return;
-  }
-  try {
-    await axios.post("http://192.168.18.27:5000/bag", {
-      userId: user._id,
-      productId: selectedProduct._id,
-      size: size,
-      quantity: 1,
-    });
-    setSelectedProduct(null);
-    router.push("/bag");
-  } catch (error) {
-    console.error("Error adding to bag:", error);
-  }
-};
-const handleAddToWishlist = async (product: any) => {
-  if (!user) {
-    router.push("/login");
-    return;
-  }
-  try {
-    await axios.post("http://192.168.18.27:5000/wishlist", {
-      userId: user._id,
-      productId: product._id,
-    });
-    router.push("/wishlist");
-  } catch (error) {
-    console.error("Error adding to wishlist:", error);
-  }
-};
-const filteredProducts = product?.filter((p: any) =>
-  p.name?.toLowerCase().includes(searchText.toLowerCase())
-);
+  const handleSizeSelect = async (size: string) => {
+    if (!selectedProduct) return;
+    if (!user) {
+      setSelectedProduct(null);
+      router.push("/login");
+      return;
+    }
+    try {
+      await axios.post(`${API_URL}/bag`, {
+        userId: user._id,
+        productId: selectedProduct._id,
+        size: size,
+        quantity: 1,
+      });
+      setSelectedProduct(null);
+      router.push("/bag");
+    } catch (error) {
+      console.error("Error adding to bag:", error);
+    }
+  };
+  const handleAddToWishlist = async (product: any) => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    try {
+      await axios.post(`${API_URL}/wishlist`, {
+        userId: user._id,
+        productId: product._id,
+      });
+      router.push("/wishlist");
+    } catch (error) {
+      console.error("Error adding to wishlist:", error);
+    }
+  };
+  const filteredProducts = product?.filter((p: any) =>
+    p.name?.toLowerCase().includes(searchText.toLowerCase()),
+  );
 
   return (
     <ScrollView
@@ -209,7 +210,11 @@ const filteredProducts = product?.filter((p: any) =>
           value={searchText}
           onChangeText={setSearchText}
         />
-        <TouchableOpacity style={styles.searchBtn} activeOpacity={0.7} onPress={() => Keyboard.dismiss()}>
+        <TouchableOpacity
+          style={styles.searchBtn}
+          activeOpacity={0.7}
+          onPress={() => Keyboard.dismiss()}
+        >
           <Text style={[styles.searchIcon, { color: theme.text }]}>🔍</Text>
         </TouchableOpacity>
       </View>
@@ -235,58 +240,60 @@ const filteredProducts = product?.filter((p: any) =>
           showsHorizontalScrollIndicator={false}
           style={styles.categoryRow}
         >
-          
           {isLoading ? (
-        <ActivityIndicator size="large" color="#ff3f6c" />
-      ) : !categories || categories.length === 0 ? (
-        <Text>No categories Available</Text>
-        ) : (
-          
-          categories.map((category:any) => (
-            <TouchableOpacity
-              key={category._id}
-              style={styles.categoryItem}
-              activeOpacity={0.7}
-              onPress={() => router.push("/categories")}
-            >
-<Image
-  source={{ uri: category.image }}
-  style={styles.categoryImage}
-  contentFit="cover"
-/>
+            <ActivityIndicator size="large" color="#ff3f6c" />
+          ) : !categories || categories.length === 0 ? (
+            <Text>No categories Available</Text>
+          ) : (
+            categories.map((category: any) => (
+              <TouchableOpacity
+                key={category._id}
+                style={styles.categoryItem}
+                activeOpacity={0.7}
+                onPress={() => router.push("/categories")}
+              >
+                <Image
+                  source={{ uri: category.image }}
+                  style={styles.categoryImage}
+                  contentFit="cover"
+                />
 
-
-              <Text style={[styles.categoryLabel, { color: theme.text }]}>
-                {category.name}
-              </Text>
-            </TouchableOpacity>
-          )))}
+                <Text style={[styles.categoryLabel, { color: theme.text }]}>
+                  {category.name}
+                </Text>
+              </TouchableOpacity>
+            ))
+          )}
         </ScrollView>
       </View>
-
       {/* Deals of the Day */}
-      <View style={styles.section}>
-        <Text style={[styles.sectionTitle, { color: theme.text }]}>
-          🔥 Deals of the Day
+  {/* Deals of the Day */}
+<View style={styles.section}>
+  <Text style={[styles.sectionTitle, { color: theme.text }]}>
+    🔥 Deals of the Day
+  </Text>
+  <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+    {deals.map((item) => (
+      <TouchableOpacity
+        key={item.id}
+        style={styles.dealCard}
+        activeOpacity={0.7}
+        onPress={() => router.push("/deals")}
+      >
+        <Image
+          source={item.image}
+          style={styles.dealImage}
+          contentFit="cover"
+        />
+        <Text style={[styles.dealTitle, { color: theme.text }]}>
+          {item.title}
         </Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-          {deals.map((item) => (
-            <View key={item.id} style={styles.dealCard}>
-              <Image
-                source={item.image}
-                style={styles.dealImage}
-                contentFit="cover"
-              />
-              <Text style={[styles.dealTitle, { color: theme.text }]}>
-                {item.title}
-              </Text>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+      </TouchableOpacity>
+    ))}
+  </ScrollView>
+</View>
 
       {/* Trending Products */}
-
       {recentlyViewed.length > 0 && (
         <View style={styles.section}>
           <TouchableOpacity onPress={() => router.push("/recentlyViewed")}>
@@ -302,9 +309,8 @@ const filteredProducts = product?.filter((p: any) =>
           >
             {recentlyViewed.map((item) => (
               <TouchableOpacity
-                             key={item._id}
+                key={item._id}
                 onPress={() => router.push(`/product/${item._id}`)}
- 
                 style={[
                   styles.productCard,
                   {
@@ -314,12 +320,11 @@ const filteredProducts = product?.filter((p: any) =>
                   },
                 ]}
               >
-                 <Image
+                <Image
                   source={{ uri: item.images?.[0] }}
                   style={styles.productImage}
                   contentFit="cover"
                 />
-
 
                 <Text style={[styles.productName, { color: theme.text }]}>
                   {item.name}
@@ -343,42 +348,42 @@ const filteredProducts = product?.filter((p: any) =>
           <Text>No products Available</Text>
         ) : (
           filteredProducts.map((product: any) => (
-          <TouchableOpacity
-            key={product._id}
-            style={[styles.productCard, { backgroundColor: theme.card }]}
-            onPress={() => handleProductPress(product._id)}
-          >
-                    <Image
-  source={{ uri: product.images?.[0] }}
-  style={styles.productImage}
-  contentFit="cover"
-/>
+            <TouchableOpacity
+              key={product._id}
+              style={[styles.productCard, { backgroundColor: theme.card }]}
+              onPress={() => handleProductPress(product._id)}
+            >
+              <Image
+                source={{ uri: product.images?.[0] }}
+                style={styles.productImage}
+                contentFit="cover"
+              />
 
-            <Text style={[styles.productName, { color: theme.text }]}>
-              {product.name}
-            </Text>
-            <Text style={{ color: theme.primary }}>₹{product.price}</Text>
-            <Text style={[styles.productBrand, { color: theme.text }]}>
-              {product.brand}
-            </Text>
-            <Text style={[styles.productDiscount, { color: theme.text }]}>
-              {product.discount}
-            </Text>
-            <View style={styles.actions}>
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: theme.primary }]}
-                onPress={() => handleAddToBag(product)}
-              >
-                <Text style={styles.actionText}>Add to Cart</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionBtn, { backgroundColor: theme.primary }]}
-                onPress={() => handleAddToWishlist(product)}
-              >
-                <Text style={styles.actionText}>Wishlist</Text>
-              </TouchableOpacity>
-            </View>
-          </TouchableOpacity>
+              <Text style={[styles.productName, { color: theme.text }]}>
+                {product.name}
+              </Text>
+              <Text style={{ color: theme.primary }}>₹{product.price}</Text>
+              <Text style={[styles.productBrand, { color: theme.text }]}>
+                {product.brand}
+              </Text>
+              <Text style={[styles.productDiscount, { color: theme.text }]}>
+                {product.discount}
+              </Text>
+              <View style={styles.actions}>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: theme.primary }]}
+                  onPress={() => handleAddToBag(product)}
+                >
+                  <Text style={styles.actionText}>Add to Cart</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[styles.actionBtn, { backgroundColor: theme.primary }]}
+                  onPress={() => handleAddToWishlist(product)}
+                >
+                  <Text style={styles.actionText}>Wishlist</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
           ))
         )}
       </View>

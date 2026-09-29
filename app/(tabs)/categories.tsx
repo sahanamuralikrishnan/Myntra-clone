@@ -20,6 +20,7 @@ import { IconSymbol } from "@/components/ui/icon-symbol";
 import { Fonts } from "@/constants/theme";
 import { useEffect, useState } from "react";
 import { X, Search } from "lucide-react-native";
+import { API_URL } from "@/utils/api";
 import axios from "axios";
 
 // const categories = [
@@ -137,8 +138,8 @@ useEffect(() => {
     const fetchproduct = async () => {
       try {
         setIsLoading(true);
-        const cat = await axios.get("http://192.168.18.27:5000/category");
-        const product = await axios.get("http://192.168.18.27:5000/product");
+        const cat = await axios.get(`${API_URL}/category`);
+        const product = await axios.get(`${API_URL}/product`);
         setCategories(cat.data);
       } catch (error) {
         setIsLoading(false);

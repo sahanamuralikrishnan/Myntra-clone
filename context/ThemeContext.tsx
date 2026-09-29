@@ -4,6 +4,7 @@ import { Appearance } from "react-native";
 import { themes } from "../config/themes";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
+import { API_URL } from "@/utils/api";
 
 interface ThemeContextType {
   theme: typeof themes.light; // type inferred from themes.js
@@ -45,7 +46,7 @@ export const ThemeProvider = ({ children }: { children: ReactNode }) => {
 
     if (user?._id) {
       try {
-        await axios.put(`http://192.168.18.27:5000/user/${user._id}/theme`, {
+        await axios.put(`${API_URL}/user/${user._id}/theme`, {
           theme: newTheme,
         });
       } catch (error) {

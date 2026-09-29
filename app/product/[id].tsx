@@ -18,6 +18,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { products } from "../data/products";
 import { useBag } from "../../context/BagContext";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "@/utils/api";
 import axios from "axios";
 
 export default function ProductDetails() {
@@ -33,7 +34,7 @@ export default function ProductDetails() {
     const fetchproduct = async () => {
       try {
         setIsLoading(true);
-        const product = await axios.get(`http://192.168.18.27:5000/product/${id}`);
+        const product = await axios.get(`${API_URL}/product/${id}`);
         setProduct(product.data);
       } catch (error) {
         setIsLoading(false);
@@ -54,7 +55,7 @@ const handleToaddBag = async () => {
     return;
   }
   try {
-    await axios.post("http://192.168.18.27:5000/bag", {
+    await axios.post(`${API_URL}/bag`, {
       userId: user._id,
       productId: product._id,
       size: selectedSize,

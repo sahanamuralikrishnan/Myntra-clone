@@ -3,6 +3,7 @@ import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity } from 
 import { useRouter } from "expo-router";
 import { MapPin, CreditCard } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
+import { API_URL } from "@/utils/api";
 import axios from "axios";
 
 export default function Checkout() {
@@ -23,7 +24,7 @@ export default function Checkout() {
       return;
     }
     try {
-      await axios.post(`http://192.168.18.27:5000/order/create/${user._id}`, {
+      await axios.post(`${API_URL}/order/create/${user._id}`, {
         shippingAddress: { street, city, state, postalCode, country },
         paymentMethod: "card",
       });
