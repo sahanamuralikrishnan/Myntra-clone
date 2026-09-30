@@ -45,6 +45,12 @@ export default function RazorpayCheckout({
             order_id: "${razorpayOrderId}",
             name: "Myntra Clone",
             prefill: { name: "${name}", email: "${email}" },
+            method: {
+              netbanking: false,
+              card: false,
+              wallet: true,
+              upi: true,
+            },
             handler: function (response) {
               window.ReactNativeWebView.postMessage(JSON.stringify({
                 status: "success",
