@@ -9,7 +9,7 @@ import {
   ScrollView,
   ActivityIndicator,
 } from "react-native";
-import { useRouter } from "expo-router";
+import { useRouter, useLocalSearchParams } from "expo-router";
 
 import { Collapsible } from "@/components/ui/collapsible";
 import { ExternalLink } from "@/components/external-link";
@@ -127,6 +127,7 @@ import axios from "axios";
 
 export default function Categories() {
   const router = useRouter();
+  const { category: categoryParam } = useLocalSearchParams<{ category?: string }>();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubCategory, setSelectedSubCategory] = useState<any>([]);
@@ -149,6 +150,17 @@ useEffect(() => {
     };
     fetchproduct();
   }, []);
+
+  // Coming from Home with a category tapped (e.g. "Men") — jump straight to its products
+  useEffect(() => {
+    if (!categories || !categoryParam) return;
+    const match = categories.find(
+      (cat: any) => cat.name.toLowerCase() === String(categoryParam).toLowerCase()
+    );
+    if (match) {
+      setSelectedCategory(match._id);
+    }
+  }, [categories, categoryParam]);
 
     if(isLoading) {
       return (
@@ -298,6 +310,13 @@ useEffect(() => {
               <Text style={styles.backButton}>{"< Back to Categories"}</Text>
             </TouchableOpacity>
 
+            {/* Category image */}
+            <Image
+              source={{ uri: selectedCategoryData.image }}
+              style={styles.categoryDetailImage}
+              contentFit="cover"
+            />
+
             {/* Category title */}
             <Text style={styles.categoryTitle}>
               {selectedCategoryData.name}
@@ -309,19 +328,37 @@ useEffect(() => {
               showsHorizontalScrollIndicator={false}
               style={styles.subcategoriesScroll}
             >
-                          {selectedCategoryData.subcategories.map((sub:any, index:any) => (
-
-                <TouchableOpacity
-                  key={index}
-                  style={[
-                    styles.subcategoryButton,
-                    selectedSubCategory === sub && styles.selectedSubcategory,
-                  ]}
-                  onPress={() => handleSubCategorySelect(sub)}
-                >
-                  <Text style={styles.subcategoryText}>{sub}</Text>
-                </TouchableOpacity>
-              ))}
+                          {selectedCategoryData.subcategories.map((sub:any, index:any) => {
+                const subImage = selectedCategoryData.productid.find(
+                  (p: any) => p.subcategory === sub
+                )?.images?.[0];
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.subcategoryTile}
+                    onPress={() => handleSubCategorySelect(sub)}
+                  >
+                    <Image
+                      source={{ uri: subImage || selectedCategoryData.image }}
+                      style={[
+                        styles.subcategoryImage,
+                        selectedSubCategory === sub &&
+                          styles.selectedSubcategoryImage,
+                      ]}
+                      contentFit="cover"
+                    />
+                    <Text
+                      style={[
+                        styles.subcategoryText,
+                        { textAlign: "center", marginTop: 6 },
+                      ]}
+                      numberOfLines={1}
+                    >
+                      {sub}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
             </ScrollView>
             <View style={styles.productGrid}>
               {filteredProducts.length > 0 ? (
@@ -399,6 +436,12 @@ const styles = StyleSheet.create({
     height: 120,
     borderRadius: 8,
     marginBottom: 8,
+  },
+  categoryDetailImage: {
+    width: "100%",
+    height: 160,
+    borderRadius: 8,
+    marginBottom: 12,
   },
   categoryName: {
     fontSize: 18,
@@ -487,6 +530,22 @@ const styles = StyleSheet.create({
   },
   selectedSubcategory: {
     backgroundColor: "#007AFF",
+  },
+  subcategoryTile: {
+    alignItems: "center",
+    marginRight: 16,
+    width: 72,
+  },
+  subcategoryImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    borderWidth: 2,
+    borderColor: "transparent",
+    backgroundColor: "#f0f0f0",
+  },
+  selectedSubcategoryImage: {
+    borderColor: "#007AFF",
   },
   productGrid: {
     flexDirection: "row", // ✅ arrange items side by side

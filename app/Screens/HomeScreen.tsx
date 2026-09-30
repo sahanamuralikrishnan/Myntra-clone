@@ -219,6 +219,8 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {!searchText.trim() && (
+      <>
       {/* Banner */}
       <View style={styles.headerWrapper}>
         <Image
@@ -250,7 +252,12 @@ export default function HomeScreen() {
                 key={category._id}
                 style={styles.categoryItem}
                 activeOpacity={0.7}
-                onPress={() => router.push("/categories")}
+                onPress={() =>
+                  router.push({
+                    pathname: "/categories",
+                    params: { category: category.name },
+                  })
+                }
               >
                 <Image
                   source={{ uri: category.image }}
@@ -340,12 +347,31 @@ export default function HomeScreen() {
           </View>
         </View>
       )}
+      </>
+      )}
 
       <View style={styles.productGrid}>
         {isLoading ? (
           <ActivityIndicator size="large" color="#ff3f6c" />
         ) : !filteredProducts || filteredProducts.length === 0 ? (
-          <Text>No products Available</Text>
+          searchText.trim() ? (
+            <View style={styles.noResultsBox}>
+              <Text style={[styles.noResultsText, { color: theme.text }]}>
+                No products found for "{searchText}"
+              </Text>
+              <Text style={[styles.noResultsHint, { color: theme.text }]}>
+                Try a different keyword
+              </Text>
+              <TouchableOpacity
+                style={styles.clearSearchBtn}
+                onPress={() => setSearchText("")}
+              >
+                <Text style={styles.clearSearchText}>Clear Search</Text>
+              </TouchableOpacity>
+            </View>
+          ) : (
+            <Text style={{ color: theme.text }}>No products Available</Text>
+          )
         ) : (
           filteredProducts.map((product: any) => (
             <TouchableOpacity
@@ -596,5 +622,31 @@ const styles = StyleSheet.create({
   cancelSizeText: {
     color: "#666",
     fontWeight: "600",
+  },
+  noResultsBox: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 24,
+  },
+  noResultsText: {
+    fontSize: 15,
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  noResultsHint: {
+    fontSize: 13,
+    opacity: 0.7,
+    marginTop: 4,
+    marginBottom: 16,
+  },
+  clearSearchBtn: {
+    backgroundColor: "#ff3f6c",
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 6,
+  },
+  clearSearchText: {
+    color: "#fff",
+    fontWeight: "700",
   },
 });

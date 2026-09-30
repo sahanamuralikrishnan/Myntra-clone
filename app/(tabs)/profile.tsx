@@ -50,7 +50,7 @@ export default function Profile() {
           </Text>
           <TouchableOpacity
             style={styles.loginButton}
-            onPress={() => router.push("/")}
+            onPress={() => router.push("/login")}
           >
             <Text style={styles.loginButtonText}>LOGIN</Text>
           </TouchableOpacity>

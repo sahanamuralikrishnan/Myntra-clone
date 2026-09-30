@@ -31,6 +31,7 @@ export default function signup() {
     email: "",
     password: "",
   });
+  const [signupError, setSignupError] = useState("");
 
   // State for password visibility
   const [showPassword, setShowPassword] = useState(false);
@@ -72,18 +73,23 @@ export default function signup() {
 
   // Handle signup
   const handlesignup = async () => {
-    if (validateForm()) {
-      try {
-        setisloading(true);
-        await signup(formData.fullName, formData.email, formData.password);
-        router.replace("/(tabs)");
-      } catch (error) {
-        console.error("Signup error:", error);
-        
-      } finally {
-        setisloading(false);
-      }
+    if (!validateForm()) return;
+
+    setSignupError("");
+    try {
+      setisloading(true);
+      await signup(formData.fullName, formData.email, formData.password);
       router.replace("/(tabs)");
+    } catch (error: any) {
+      const message =
+        error?.response?.data?.message ||
+        (error?.message === "Network Error"
+          ? "Can't reach the server. Check your connection and try again."
+          : error?.message) ||
+        "Signup failed. Please try again.";
+      setSignupError(message);
+    } finally {
+      setisloading(false);
     }
   };
 
@@ -164,6 +170,10 @@ export default function signup() {
             <Text style={styles.errorText}>{error.password}</Text>
           ) : null}
         </View>
+        {signupError ? (
+          <Text style={styles.errorText}>{signupError}</Text>
+        ) : null}
+
         {/* Signup button */}
         <TouchableOpacity
           style={styles.button}

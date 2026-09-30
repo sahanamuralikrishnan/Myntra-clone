@@ -29,6 +29,7 @@ export default function ProductDetails() {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const [product, setProduct] = useState<any>(null);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchproduct = async () => {
@@ -68,7 +69,23 @@ const handleToaddBag = async () => {
 };
   useEffect(() => {
     saveViewedProduct(product); // product is the current product details
-  }, [product]);
+    if (user && product?._id) {
+      axios
+        .post(`${API_URL}/recently-viewed`, {
+          userId: user._id,
+          productId: product._id,
+        })
+        .catch((error) => console.error("Error recording view:", error));
+    }
+  }, [product, user]);
+
+  useEffect(() => {
+    if (!user) return;
+    axios
+      .get(`${API_URL}/recommendations/${user._id}`)
+      .then((res) => setRecommendations(res.data))
+      .catch((error) => console.error("Error fetching recommendations:", error));
+  }, [user]);
 
   if (!product) {
     return (
@@ -150,6 +167,32 @@ const handleToaddBag = async () => {
             <Text style={styles.addToBagText}>ADD TO BAG</Text>
           </TouchableOpacity>
         </View>
+
+        {/* You May Also Like */}
+        {recommendations.length > 0 && (
+          <View style={styles.recoSection}>
+            <Text style={styles.recoTitle}>You May Also Like</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {recommendations.map((item: any) => (
+                <TouchableOpacity
+                  key={item._id}
+                  style={styles.recoCard}
+                  onPress={() => router.push(`/product/${item._id}`)}
+                >
+                  <Image
+                    source={{ uri: item.images?.[0] }}
+                    style={styles.recoImage}
+                  />
+                  <Text style={styles.recoBrand}>{item.brand}</Text>
+                  <Text style={styles.recoName} numberOfLines={1}>
+                    {item.name}
+                  </Text>
+                  <Text style={styles.recoPrice}>₹{item.price}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -363,6 +406,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "700",
     marginLeft: 8,
+  },
+
+  // You May Also Like
+  recoSection: {
+    padding: 16,
+    backgroundColor: "#fff",
+  },
+  recoTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    marginBottom: 12,
+    color: "#000",
+  },
+  recoCard: {
+    width: 130,
+    marginRight: 12,
+  },
+  recoImage: {
+    width: 130,
+    height: 160,
+    borderRadius: 8,
+    backgroundColor: "#f5f5f5",
+  },
+  recoBrand: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#555",
+    marginTop: 6,
+  },
+  recoName: {
+    fontSize: 13,
+    color: "#222",
+  },
+  recoPrice: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#000",
+    marginTop: 2,
   },
 });
 function addToBag(
