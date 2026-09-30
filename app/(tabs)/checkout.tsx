@@ -5,6 +5,7 @@ import { MapPin, CreditCard } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
 import axios from "axios";
+import RazorpayCheckout from "@/components/RazorpayCheckout";
 
 export default function Checkout() {
   const router = useRouter();
@@ -17,6 +18,8 @@ export default function Checkout() {
   const [state, setState] = useState("NY");
   const [postalCode, setPostalCode] = useState("10001");
   const [country, setCountry] = useState("United States");
+  const [showRazorpay, setShowRazorpay] = useState(false);
+  const [razorpayOrder, setRazorpayOrder] = useState<any>(null);
 
   const handlePlaceOrder = async () => {
     if (!user) {
@@ -24,14 +27,46 @@ export default function Checkout() {
       return;
     }
     try {
-      await axios.post(`${API_URL}/order/create/${user._id}`, {
+      const { data } = await axios.get(`${API_URL}/bag/${user._id}/validate`);
+      if (!data.valid) {
+        console.error("Some bag items are no longer available");
+        return;
+      }
+
+      const orderRes = await axios.post(`${API_URL}/payment/razorpay/create-order`, {
+        amount: data.newTotal,
+      });
+
+      setRazorpayOrder(orderRes.data);
+      setShowRazorpay(true);
+    } catch (error) {
+      console.error("Error starting payment:", error);
+    }
+  };
+
+  const handleRazorpaySuccess = async (data: any) => {
+    setShowRazorpay(false);
+    try {
+      const verifyRes = await axios.post(`${API_URL}/payment/razorpay/verify`, data);
+      if (!verifyRes.data.verified) {
+        console.error("Payment verification failed");
+        return;
+      }
+
+      await axios.post(`${API_URL}/order/create/${user?._id}`, {
         shippingAddress: { street, city, state, postalCode, country },
-        paymentMethod: "card",
+        paymentMethod: "Razorpay",
+        paymentStatus: "paid",
+        razorpayPaymentId: data.razorpay_payment_id,
       });
       router.push("/orders");
     } catch (error) {
-      console.error("Error placing order:", error);
+      console.error("Error finishing order:", error);
     }
+  };
+
+  const handleRazorpayClose = () => {
+    setShowRazorpay(false);
   };
   return (
     <View style={styles.container}>
@@ -68,11 +103,9 @@ export default function Checkout() {
             <Text style={styles.sectionTitle}>Payment Method</Text>
           </View>
           <View style={styles.form}>
-            <TextInput style={styles.input} placeholder="Card Number" defaultValue="**** **** **** 4242" />
-            <View style={styles.row}>
-              <TextInput style={[styles.input, styles.halfInput]} placeholder="Expiry Date" defaultValue="12/25" />
-              <TextInput style={[styles.input, styles.halfInput]} placeholder="CVV" defaultValue="***" />
-            </View>
+            <Text style={styles.paymentNote}>
+              You'll enter your card details securely on the next screen via Razorpay.
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -81,6 +114,19 @@ export default function Checkout() {
       <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
         <Text style={styles.placeOrderText}>Place Order</Text>
       </TouchableOpacity>
+
+      {razorpayOrder && (
+        <RazorpayCheckout
+          visible={showRazorpay}
+          keyId={razorpayOrder.keyId}
+          razorpayOrderId={razorpayOrder.razorpayOrderId}
+          amount={razorpayOrder.amount}
+          name={user?.name || "Guest"}
+          email={user?.email || ""}
+          onSuccess={handleRazorpaySuccess}
+          onClose={handleRazorpayClose}
+        />
+      )}
     </View>
   );
 }
@@ -146,6 +192,11 @@ const styles = StyleSheet.create({
   halfInput: {
     flex: 1,
     marginRight: 8,
+  },
+  paymentNote: {
+    fontSize: 14,
+    color: "#666",
+    lineHeight: 20,
   },
   placeOrderButton: {
     marginBottom: 24,
