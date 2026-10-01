@@ -25,13 +25,28 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setisloading] = useState(false);
 
+  const [loginError, setLoginError] = useState("");
+
   const handleLogin = async () => {
+    if (!email.trim() || !password) {
+      setLoginError("Please enter your email and password.");
+      return;
+    }
+
+    setLoginError("");
     try {
       setisloading(true);
-      await login(email, password);
+      await login(email.trim(), password);
       router.replace("/(tabs)");
-    } catch (error) {
-      console.error("Login error:", error);
+    } catch (error: any) {
+      const status = error?.response?.status;
+      const message =
+        status === 400 || status === 404
+          ? "Incorrect email or password."
+          : error?.message === "Network Error"
+          ? "Can't reach the server. Check your connection and try again."
+          : error?.response?.data?.message || "Login failed. Please try again.";
+      setLoginError(message);
     } finally {
       setisloading(false);
     }
@@ -76,6 +91,8 @@ export default function Login() {
           </TouchableOpacity>
         </View>
       </View>
+
+      {loginError ? <Text style={styles.errorText}>{loginError}</Text> : null}
 
       <TouchableOpacity
         style={styles.button}
@@ -142,6 +159,11 @@ const styles = StyleSheet.create({
     paddingVertical: 15,
     borderRadius: 10,
     marginTop: 10,
+  },
+  errorText: {
+    color: "red",
+    textAlign: "center",
+    marginBottom: 8,
   },
   buttonText: {
     color: "#fff",

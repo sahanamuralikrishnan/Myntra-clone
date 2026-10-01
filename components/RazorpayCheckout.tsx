@@ -1,5 +1,5 @@
 import React from "react";
-import { Modal, View, StyleSheet, TouchableOpacity, Text } from "react-native";
+import { Modal, View, StyleSheet, TouchableOpacity, Text, Alert, Linking } from "react-native";
 import { WebView } from "react-native-webview";
 
 type RazorpaySuccess = {
@@ -66,6 +66,14 @@ export default function RazorpayCheckout({
             },
           };
           var rzp = new Razorpay(options);
+          // Fires when a payment attempt fails (e.g. a wallet declines it).
+          // Razorpay keeps its sheet open so the user can retry another method.
+          rzp.on("payment.failed", function (response) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({
+              status: "failed",
+              reason: response.error && response.error.description,
+            }));
+          });
           rzp.open();
         </script>
       </body>
@@ -73,12 +81,30 @@ export default function RazorpayCheckout({
   `;
 
   const handleMessage = (event: any) => {
-    const data = JSON.parse(event.nativeEvent.data);
+    let data;
+    try {
+      data = JSON.parse(event.nativeEvent.data);
+    } catch {
+      return;
+    }
     if (data.status === "success") {
       onSuccess(data);
+    } else if (data.status === "failed") {
+      Alert.alert("Payment failed", data.reason || "Please try another payment method.");
     } else {
       onClose();
     }
+  };
+
+  // Some wallets (PhonePe, Amazon Pay, etc.) hand off to their own app using
+  // links like "phonepe://..." that a WebView can't open. Pass those to the phone.
+  const handleNavigation = (request: { url: string }) => {
+    const { url } = request;
+    if (/^(https?|about|data|blob):/i.test(url)) return true;
+    Linking.openURL(url).catch(() =>
+      Alert.alert("App not found", "That wallet app isn't installed on this phone.")
+    );
+    return false;
   };
 
   return (
@@ -91,6 +117,10 @@ export default function RazorpayCheckout({
           originWhitelist={["*"]}
           source={{ html }}
           onMessage={handleMessage}
+          onShouldStartLoadWithRequest={handleNavigation}
+          // Wallet login pages open as pop-up windows; load them in this same view
+          javaScriptCanOpenWindowsAutomatically
+          setSupportMultipleWindows={false}
           style={styles.webview}
         />
       </View>

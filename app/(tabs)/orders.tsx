@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
   Alert,
 } from "react-native";
-import { useRouter, useFocusEffect } from "expo-router";
+import { useRouter, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
 import { ArrowLeft, MapPin, ChevronRight, Package } from "lucide-react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
@@ -21,6 +21,17 @@ const PAGE_SIZE = 5;
 
 export default function Orders() {
   const router = useRouter();
+  const navigation = useNavigation();
+  const { from } = useLocalSearchParams<{ from?: string }>();
+  const fromProfile = from === "profile";
+
+  // Tab screens keep their params, so forget "from" when leaving; otherwise a
+  // later visit (e.g. right after placing an order) would still point to Profile.
+  useFocusEffect(
+    useCallback(() => {
+      return () => navigation.setParams({ from: undefined } as never);
+    }, [navigation])
+  );
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   const [isloading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
@@ -166,10 +177,12 @@ export default function Orders() {
         <Text style={styles.headerTitle}>My Orders</Text>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => router.push("/bag")}
+          onPress={() => router.navigate(fromProfile ? "/profile" : "/bag")}
         >
           <ArrowLeft size={18} color="#333" />
-          <Text style={styles.backButtonText}>Back to Bag</Text>
+          <Text style={styles.backButtonText}>
+            {fromProfile ? "Back to Profile" : "Back to Bag"}
+          </Text>
         </TouchableOpacity>
       </View>
 

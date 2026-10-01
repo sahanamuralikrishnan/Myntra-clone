@@ -79,6 +79,55 @@ const handleToaddBag = async () => {
     }
   }, [product, user]);
 
+  // Wishlist entry id for this product, or null if it isn't in the wishlist
+  const [wishlistItemId, setWishlistItemId] = useState<string | null>(null);
+  const [wishlistBusy, setWishlistBusy] = useState(false);
+
+  // Check whether this product is already in the user's wishlist (to colour the heart)
+  useEffect(() => {
+    if (!user || !product?._id) {
+      setWishlistItemId(null);
+      return;
+    }
+    axios
+      .get(`${API_URL}/wishlist/${user._id}`)
+      .then((res) => {
+        const items = Array.isArray(res.data) ? res.data : [];
+        const match = items.find(
+          (item: any) => (item.productId?._id ?? item.productId) === product._id
+        );
+        setWishlistItemId(match ? match._id : null);
+      })
+      .catch((error) => console.log("Error checking wishlist:", error));
+  }, [user, product?._id]);
+
+  // Heart tapped: add to wishlist, or remove if it's already there
+  const handleToggleWishlist = async () => {
+    if (!user) {
+      router.push("/login");
+      return;
+    }
+    if (wishlistBusy) return;
+    setWishlistBusy(true);
+    try {
+      if (wishlistItemId) {
+        await axios.delete(`${API_URL}/wishlist/${wishlistItemId}`);
+        setWishlistItemId(null);
+      } else {
+        const res = await axios.post(`${API_URL}/wishlist`, {
+          userId: user._id,
+          productId: product._id,
+        });
+        setWishlistItemId(res.data._id);
+      }
+    } catch (error) {
+      console.log("Error updating wishlist:", error);
+      alert("Couldn't update your wishlist. Please try again.");
+    } finally {
+      setWishlistBusy(false);
+    }
+  };
+
   useEffect(() => {
     if (!user) return;
     axios
@@ -118,8 +167,15 @@ const handleToaddBag = async () => {
               <Text style={styles.brand}>{product.brand}</Text>
               <Text style={styles.name}>{product.name}</Text>
             </View>
-            <TouchableOpacity style={styles.wishlistButton}>
-              <Heart />
+            <TouchableOpacity
+              style={styles.wishlistButton}
+              onPress={handleToggleWishlist}
+              disabled={wishlistBusy}
+            >
+              <Heart
+                color={wishlistItemId ? "#ff3f6c" : "#222"}
+                fill={wishlistItemId ? "#ff3f6c" : "transparent"}
+              />
             </TouchableOpacity>
           </View>
           <View style={styles.priceContainer}>

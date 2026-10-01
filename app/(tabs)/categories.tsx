@@ -189,22 +189,38 @@ useEffect(() => {
     setSelectedSubCategory(subCategoryId);
     setSearchQuery("");
   };
-  const filtercategories = categories?.filter((category: any) => {
-    const query = searchQuery.toLowerCase();
-    if (!query) return true;
+  const query = searchQuery.toLowerCase().trim();
+  const searchWords = query.split(/[^a-z0-9]+/).filter(Boolean);
 
-    return (
-      category.name.toLowerCase().includes(query) ||
-      (category.subcategories ?? []).some((subcategory: string) =>
-        subcategory.toLowerCase().includes(query),
-      ) ||
-      (category.productid ?? []).some(
-        (product: any) =>
-          product.name.toLowerCase().includes(query) ||
-          product.brand.toLowerCase().includes(query),
+  // Typing a category name ("women", "men", "kids", "beauty") shows that category.
+  // Matching is from the start of the name, so "men" finds Men but not Women.
+  const matchingCategories = query
+    ? (categories ?? []).filter((category: any) =>
+        category.name.toLowerCase().startsWith(query)
       )
-    );
-  });
+    : [];
+
+  // Anything else ("jeans", "face cream") searches products. Every word typed
+  // must start a word in the product's name, brand, subcategory or category,
+  // so "face cream" finds "Nivea Face Cream" but not just any cream.
+  const searchResults: any[] = [];
+  if (searchWords.length > 0 && matchingCategories.length === 0) {
+    const seen = new Set<string>();
+    for (const category of categories ?? []) {
+      for (const product of category.productid ?? []) {
+        if (!product?._id || seen.has(product._id)) continue;
+        const textWords = [product.name, product.brand, product.subcategory, category.name]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .split(/[^a-z0-9]+/);
+        if (searchWords.every((word) => textWords.some((t) => t.startsWith(word)))) {
+          seen.add(product._id);
+          searchResults.push(product);
+        }
+      }
+    }
+  }
 
   const selectedCategoryData = selectedCategory
     ? categories.find((cat:any) => cat._id === selectedCategory)
@@ -264,10 +280,33 @@ useEffect(() => {
       </View>
 
       {/* Categories List */}
-      <ScrollView>
-        {!selectedCategory && (
+      <ScrollView keyboardShouldPersistTaps="handled">
+        {/* Product search results (only when the search isn't a category name) */}
+        {searchWords.length > 0 && matchingCategories.length === 0 && (
           <View>
-            {filtercategories?.map((category:any) => (
+            {searchResults.length > 0 ? (
+              <>
+                <Text style={styles.resultsCount}>
+                  {searchResults.length} {searchResults.length === 1 ? "product" : "products"} found
+                </Text>
+                <View style={styles.productGrid}>{renderProducts(searchResults)}</View>
+              </>
+            ) : (
+              <View style={styles.noResults}>
+                <Search size={40} color="#ccc" />
+                <Text style={styles.noResultsTitle}>No products found</Text>
+                <Text style={styles.noProductsText}>
+                  We couldn't find anything for "{searchQuery.trim()}". Try a different word.
+                </Text>
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* All categories, or just the ones matching the search */}
+        {!selectedCategory && (searchWords.length === 0 || matchingCategories.length > 0) && (
+          <View>
+            {(searchWords.length === 0 ? categories ?? [] : matchingCategories).map((category:any) => (
               <TouchableOpacity
                 key={category._id}
                 style={styles.categoryBox}
@@ -557,6 +596,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#888",
     padding: 16,
+    textAlign: "center",
+  },
+  resultsCount: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 8,
+  },
+  noResults: {
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  noResultsTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+    marginTop: 12,
   },
   // subcategoryText: {
   //   color: '#333',

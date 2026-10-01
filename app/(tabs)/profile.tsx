@@ -27,8 +27,9 @@ export default function Profile() {
   if (!themeContext) return null;
   const { theme, setTheme } = themeContext;
   const menuItems = [
-    { icon: Package, label: "Orders", route: "/orders" },
-    { icon: Heart, label: "Wishlist", route: "/wishlist" },
+    // "from=profile" lets these tab screens send the back arrow to Profile
+    { icon: Package, label: "Orders", route: "/orders?from=profile" },
+    { icon: Heart, label: "Wishlist", route: "/wishlist?from=profile" },
     { icon: Bell, label: "Notifications", route: "/notification-settings" },
     { icon: CreditCard, label: "Payment Methods", route: "/payments" },
     { icon: MapPin, label: "Addresses", route: "/addresses" },

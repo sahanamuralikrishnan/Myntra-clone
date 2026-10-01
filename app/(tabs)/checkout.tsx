@@ -1,7 +1,7 @@
-import React, { useState } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity } from "react-native";
-import { useRouter } from "expo-router";
-import { MapPin, CreditCard } from "lucide-react-native";
+import React, { useCallback, useState } from "react";
+import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Alert, BackHandler } from "react-native";
+import { useFocusEffect, useRouter } from "expo-router";
+import { ArrowLeft, MapPin, CreditCard } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
 import axios from "axios";
@@ -29,7 +29,13 @@ export default function Checkout() {
     try {
       const { data } = await axios.get(`${API_URL}/bag/${user._id}/validate`);
       if (!data.valid) {
-        console.error("Some bag items are no longer available");
+        Alert.alert("Some items unavailable", "Some bag items are no longer available. Please review your bag.");
+        return;
+      }
+      if (!data.newTotal || data.newTotal <= 0) {
+        Alert.alert("Your bag is empty", "Add some items to your bag before placing an order.", [
+          { text: "OK", onPress: () => router.push("/bag") },
+        ]);
         return;
       }
 
@@ -68,10 +74,30 @@ export default function Checkout() {
   const handleRazorpayClose = () => {
     setShowRazorpay(false);
   };
+
+  // Leave checkout without ordering. Checkout is a hidden tab, so a plain
+  // "back" would jump to Home; send the user back to their bag instead.
+  const goBackToBag = () => {
+    router.navigate("/bag");
+  };
+
+  // Android's hardware back button does the same
+  useFocusEffect(
+    useCallback(() => {
+      const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+        goBackToBag();
+        return true;
+      });
+      return () => sub.remove();
+    }, [])
+  );
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={goBackToBag}>
+          <ArrowLeft size={24} color="#333" />
+        </TouchableOpacity>
         <Text style={styles.headerTitle}>Checkout</Text>
       </View>
 
@@ -141,6 +167,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderBottomWidth: 1,
     borderBottomColor: "#eee",
+  },
+  backButton: {
+    position: "absolute",
+    left: 16,
+    bottom: 12,
+    padding: 4,
+    zIndex: 1,
   },
   headerTitle: {
     fontSize: 20,
