@@ -10,22 +10,49 @@ import RazorpayCheckout from "@/components/RazorpayCheckout";
 export default function Checkout() {
   const router = useRouter();
   const [loading , setLoading] = useState(false);
-  const {user} = useAuth();
-  const [activeSection, setActiveSection] = useState("shipping");
+  const { user, token } = useAuth();
 
-  const [street, setStreet] = useState("123 Main Street, Apt 4B");
-  const [city, setCity] = useState("New York");
-  const [state, setState] = useState("NY");
-  const [postalCode, setPostalCode] = useState("10001");
-  const [country, setCountry] = useState("United States");
+  const [fullName, setFullName] = useState("");
+  const [street, setStreet] = useState("");
+  const [city, setCity] = useState("");
+  const [state, setState] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [country, setCountry] = useState("");
   const [showRazorpay, setShowRazorpay] = useState(false);
   const [razorpayOrder, setRazorpayOrder] = useState<any>(null);
+
+  // Fill the form with the user's default saved address (if they have one)
+  useFocusEffect(
+    useCallback(() => {
+      if (!user) return;
+      axios
+        .get(`${API_URL}/address/${user._id}`)
+        .then((res) => {
+          const saved = Array.isArray(res.data) ? res.data : [];
+          const address = saved.find((a: any) => a.isDefault) || saved[0];
+          if (!address) return;
+          setFullName(address.fullName || "");
+          setStreet(address.street || "");
+          setCity(address.city || "");
+          setState(address.state || "");
+          setPostalCode(address.postalCode || "");
+          setCountry(address.country || "");
+        })
+        .catch((error) => console.log("Error loading saved address:", error));
+    }, [user])
+  );
 
   const handlePlaceOrder = async () => {
     if (!user) {
       router.push("/login");
       return;
     }
+    if (!fullName.trim() || !street.trim() || !city.trim() || !state.trim() || !postalCode.trim() || !country.trim()) {
+      Alert.alert("Missing address", "Please fill in your full shipping address.");
+      return;
+    }
+    if (loading) return;
+    setLoading(true);
     try {
       const { data } = await axios.get(`${API_URL}/bag/${user._id}/validate`);
       if (!data.valid) {
@@ -47,27 +74,35 @@ export default function Checkout() {
       setShowRazorpay(true);
     } catch (error) {
       console.error("Error starting payment:", error);
+      Alert.alert("Could not start payment", "Please check your connection and try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleRazorpaySuccess = async (data: any) => {
     setShowRazorpay(false);
     try {
-      const verifyRes = await axios.post(`${API_URL}/payment/razorpay/verify`, data);
-      if (!verifyRes.data.verified) {
-        console.error("Payment verification failed");
-        return;
-      }
-
-      await axios.post(`${API_URL}/order/create/${user?._id}`, {
-        shippingAddress: { street, city, state, postalCode, country },
-        paymentMethod: "Razorpay",
-        paymentStatus: "paid",
-        razorpayPaymentId: data.razorpay_payment_id,
-      });
+      // The backend checks the Razorpay signature itself before marking the order as paid
+      await axios.post(
+        `${API_URL}/order/create/${user?._id}`,
+        {
+          shippingAddress: { street, city, state, postalCode, country },
+          paymentMethod: "Razorpay",
+          razorpay_order_id: data.razorpay_order_id,
+          razorpay_payment_id: data.razorpay_payment_id,
+          razorpay_signature: data.razorpay_signature,
+        },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
       router.push("/orders");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error finishing order:", error);
+      Alert.alert(
+        "Order not placed",
+        error?.response?.data?.message ||
+          `Your payment went through but we couldn't create the order. Please contact support with payment ID ${data.razorpay_payment_id}.`
+      );
     }
   };
 
@@ -109,7 +144,7 @@ export default function Checkout() {
             <Text style={styles.sectionTitle}>Shipping Address</Text>
           </View>
           <View style={styles.form}>
-            <TextInput style={styles.input} placeholder="Full Name" defaultValue="John Doe" />
+            <TextInput style={styles.input} placeholder="Full Name" value={fullName} onChangeText={setFullName} />
             <TextInput style={styles.input} placeholder="Address Line 1" value={street} onChangeText={setStreet} />
             <View style={styles.row}>
               <TextInput style={[styles.input, styles.halfInput]} placeholder="City" value={city} onChangeText={setCity} />
@@ -130,15 +165,15 @@ export default function Checkout() {
           </View>
           <View style={styles.form}>
             <Text style={styles.paymentNote}>
-              You'll enter your card details securely on the next screen via Razorpay.
+              You&apos;ll pay securely on the next screen via Razorpay (UPI or wallet).
             </Text>
           </View>
         </View>
       </ScrollView>
 
       {/* Place Order Button */}
-      <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder}>
-        <Text style={styles.placeOrderText}>Place Order</Text>
+      <TouchableOpacity style={styles.placeOrderButton} onPress={handlePlaceOrder} disabled={loading}>
+        <Text style={styles.placeOrderText}>{loading ? "Please wait..." : "Place Order"}</Text>
       </TouchableOpacity>
 
       {razorpayOrder && (

@@ -13,10 +13,6 @@ import {
 } from "react-native";
 import { Eye, EyeOff } from "lucide-react-native";
 
-type LoginProps = {
-  onLogin: () => void;
-};
-
 export default function Login() {
   const { login } = useAuth();
   const [email, setEmail] = useState("");
@@ -179,20 +175,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     marginBottom: 15,
     backgroundColor: "#fff",
-    width: "60%",
+    width: "100%",
   },
   eyeIcon: {
     paddingHorizontal: 10, // spacing around the icon
   },
-  // inputGroup: {
-  //   borderWidth: 1,
-  //   borderColor: "#ccc",
-  //   padding: 12,
-  //   borderRadius: 8,
-  //   marginBottom: 15,
-  //   backgroundColor: "#fff",
-  //   width: "60%",
-  // },
+  inputGroup: {
+    width: "60%", // same width as the email box
+    alignItems: "center",
+  },
   passwordInput: {
     flex: 1, // take full width except icon
     padding: 12,

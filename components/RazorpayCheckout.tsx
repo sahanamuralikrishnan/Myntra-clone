@@ -39,12 +39,12 @@ export default function RazorpayCheckout({
         <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
         <script>
           var options = {
-            key: "${keyId}",
-            amount: "${amount}",
+            key: ${JSON.stringify(keyId)},
+            amount: ${JSON.stringify(String(amount))},
             currency: "INR",
-            order_id: "${razorpayOrderId}",
+            order_id: ${JSON.stringify(razorpayOrderId)},
             name: "Myntra Clone",
-            prefill: { name: "${name}", email: "${email}" },
+            prefill: { name: ${JSON.stringify(name)}, email: ${JSON.stringify(email)} },
             method: {
               netbanking: false,
               card: false,

@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useState } from "react";
 import { View, Text, FlatList, Image, TouchableOpacity } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
+// Products are saved here by the product page, in the same shape the backend returns
 type RecentlyViewedProduct = {
-  id: string | number;
-  image: string | { uri: string };
+  _id: string;
+  images?: string[];
   name: string;
   price: string | number;
 };
@@ -14,13 +15,18 @@ export default function RecentlyViewedPage() {
   const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedProduct[]>([]);
   const router = useRouter();
 
-  useEffect(() => {
-    const loadViewed = async () => {
-      const saved = await AsyncStorage.getItem("recentlyViewed");
-      if (saved) setRecentlyViewed(JSON.parse(saved));
-    };
-    loadViewed();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const loadViewed = async () => {
+        const saved = await AsyncStorage.getItem("recentlyViewed");
+        if (saved) {
+          const parsed = JSON.parse(saved);
+          setRecentlyViewed(parsed.filter((item: any) => item && item._id));
+        }
+      };
+      loadViewed();
+    }, []),
+  );
   return (
     <View style={{ flex: 1, padding: 16 }}>
       <Text style={{ fontSize: 22, fontWeight: "bold", marginBottom: 12 }}>
@@ -29,18 +35,15 @@ export default function RecentlyViewedPage() {
 
       <FlatList
         data={recentlyViewed}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => item._id}
+        ListEmptyComponent={<Text>You haven&apos;t viewed any products yet</Text>}
         renderItem={({ item }) => (
           <TouchableOpacity
             style={{ marginBottom: 16 }}
-            onPress={() => router.push(`/product/${item.id}`)}
+            onPress={() => router.push(`/product/${item._id}`)}
           >
             <Image
-              source={
-                typeof item.image === "string"
-                  ? { uri: item.image }
-                  : item.image
-              }
+              source={{ uri: item.images?.[0] }}
               style={{ width: "100%", height: 200, borderRadius: 8 }}
             />
             <Text style={{ fontSize: 16, marginTop: 8 }}>{item.name}</Text>

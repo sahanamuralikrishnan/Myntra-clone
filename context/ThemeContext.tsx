@@ -13,35 +13,43 @@ interface ThemeContextType {
 
 export const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
+type ThemeName = keyof typeof themes;
+
+// Only accept names we actually have a theme for (anything else would crash the screens)
+const isThemeName = (name: unknown): name is ThemeName =>
+  typeof name === "string" && name in themes;
+
 export const ThemeProvider = ({ children }: { children: ReactNode }) => {
   const { user } = useAuth();
-  const [themeName, setThemeName] = useState<keyof typeof themes>("light");
-  const [theme, setTheme] = useState(themes[themeName]);
+  const [themeName, setThemeName] = useState<ThemeName>("light");
 
   useEffect(() => {
     const loadTheme = async () => {
       const savedTheme = await AsyncStorage.getItem("theme");
-      const systemTheme = Appearance.getColorScheme() || "light";
-      const finalTheme = (savedTheme as keyof typeof themes) || systemTheme;
-      setThemeName(finalTheme);
-      setTheme(themes[finalTheme]);
+      const systemTheme = Appearance.getColorScheme();
+      if (isThemeName(savedTheme)) setThemeName(savedTheme);
+      else if (isThemeName(systemTheme)) setThemeName(systemTheme);
     };
     loadTheme();
   }, []);
 
   // ✅ When a user logs in, apply whatever theme is saved on their account
+  const serverTheme = user?.theme;
   useEffect(() => {
-    if (user?.theme && themes[user.theme as keyof typeof themes]) {
-      const serverTheme = user.theme as keyof typeof themes;
-      setThemeName(serverTheme);
-      setTheme(themes[serverTheme]);
+    if (isThemeName(serverTheme)) {
       AsyncStorage.setItem("theme", serverTheme);
     }
-  }, [user]);
+  }, [serverTheme]);
+  const [appliedServerTheme, setAppliedServerTheme] = useState<string | undefined>();
+  if (serverTheme !== appliedServerTheme) {
+    setAppliedServerTheme(serverTheme);
+    if (isThemeName(serverTheme)) setThemeName(serverTheme);
+  }
 
-  const changeTheme = async (newTheme: keyof typeof themes) => {
+  const theme = themes[themeName];
+
+  const changeTheme = async (newTheme: ThemeName) => {
     setThemeName(newTheme);
-    setTheme(themes[newTheme]);
     await AsyncStorage.setItem("theme", newTheme);
 
     if (user?._id) {

@@ -48,7 +48,7 @@ export default function Orders() {
     if (!user || !token) return;
     try {
       append ? setIsLoadingMore(true) : setIsLoading(true);
-      const statusParam = statusFilter ? `&status=${statusFilter}` : "";
+      const statusParam = statusFilter ? `&status=${encodeURIComponent(statusFilter)}` : "";
       const res = await axios.get(
         `${API_URL}/order/user/${user._id}?page=${pageToLoad}&limit=${PAGE_SIZE}${statusParam}`,
         { headers },
@@ -155,11 +155,16 @@ export default function Orders() {
   const downloadInvoice = async (orderId: string) => {
     try {
       const fileUri = FileSystem.documentDirectory! + `invoice-${orderId}.pdf`;
-      const { uri } = await FileSystem.downloadAsync(
+      const { uri, status } = await FileSystem.downloadAsync(
         `${API_URL}/order/${orderId}/invoice`,
         fileUri,
         { headers },
       );
+      // On an error the "file" is just the server's error message, not a PDF
+      if (status !== 200) {
+        await FileSystem.deleteAsync(uri, { idempotent: true });
+        throw new Error(`Invoice download failed (${status})`);
+      }
 
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
@@ -213,7 +218,9 @@ export default function Orders() {
         })}
       </ScrollView>
 
-      {isloading ? (
+      {!user ? (
+        <Text style={styles.emptyText}>Please login to view your orders</Text>
+      ) : isloading ? (
         <ActivityIndicator size="large" color="#ff3f6c" style={{ marginTop: 40 }} />
       ) : !order || order.length === 0 ? (
         <Text style={styles.emptyText}>No orders found</Text>

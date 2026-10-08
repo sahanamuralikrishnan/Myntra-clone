@@ -1,6 +1,5 @@
 import { Image } from "expo-image";
 import {
-  Platform,
   StyleSheet,
   View,
   Text,
@@ -11,13 +10,6 @@ import {
 } from "react-native";
 import { useRouter, useLocalSearchParams } from "expo-router";
 
-import { Collapsible } from "@/components/ui/collapsible";
-import { ExternalLink } from "@/components/external-link";
-import ParallaxScrollView from "@/components/parallax-scroll-view";
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { IconSymbol } from "@/components/ui/icon-symbol";
-import { Fonts } from "@/constants/theme";
 import { useEffect, useState } from "react";
 import { X, Search } from "lucide-react-native";
 import { API_URL } from "@/utils/api";
@@ -140,7 +132,6 @@ useEffect(() => {
       try {
         setIsLoading(true);
         const cat = await axios.get(`${API_URL}/category`);
-        const product = await axios.get(`${API_URL}/product`);
         setCategories(cat.data);
       } catch (error) {
         setIsLoading(false);
@@ -151,16 +142,18 @@ useEffect(() => {
     fetchproduct();
   }, []);
 
-  // Coming from Home with a category tapped (e.g. "Men") — jump straight to its products
-  useEffect(() => {
-    if (!categories || !categoryParam) return;
+  // Coming from Home with a category tapped (e.g. "Men") — jump straight to its products.
+  // Done once per new param (not in an effect) so the screen doesn't render twice.
+  const [appliedParam, setAppliedParam] = useState<string | undefined>();
+  if (categories && categoryParam && categoryParam !== appliedParam) {
+    setAppliedParam(categoryParam);
     const match = categories.find(
       (cat: any) => cat.name.toLowerCase() === String(categoryParam).toLowerCase()
     );
     if (match) {
       setSelectedCategory(match._id);
     }
-  }, [categories, categoryParam]);
+  }
 
     if(isLoading) {
       return (
@@ -296,7 +289,7 @@ useEffect(() => {
                 <Search size={40} color="#ccc" />
                 <Text style={styles.noResultsTitle}>No products found</Text>
                 <Text style={styles.noProductsText}>
-                  We couldn't find anything for "{searchQuery.trim()}". Try a different word.
+                  We couldn&apos;t find anything for &quot;{searchQuery.trim()}&quot;. Try a different word.
                 </Text>
               </View>
             )}

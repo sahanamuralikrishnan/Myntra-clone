@@ -13,7 +13,7 @@ import { useRouter } from "expo-router";
 import { Eye, EyeOff } from "lucide-react-native";
 import { useAuth } from "../../context/AuthContext";
 
-export default function signup() {
+export default function Signup() {
   const { signup } = useAuth();
   const router = useRouter();
   const [isloading, setisloading] = useState(false);

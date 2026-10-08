@@ -29,8 +29,6 @@ import { useAuth } from "../../context/AuthContext";
 import axios from "axios";
 import { API_URL } from "@/utils/api";
 
-import { AnyAttributeType } from "react-native/Libraries/NativeComponent/NativeComponentRegistry";
-
 const { width } = Dimensions.get("window");
 const HEADER_HEIGHT = 200;
 // const categories = [
@@ -357,7 +355,7 @@ export default function HomeScreen() {
           searchText.trim() ? (
             <View style={styles.noResultsBox}>
               <Text style={[styles.noResultsText, { color: theme.text }]}>
-                No products found for "{searchText}"
+                No products found for &quot;{searchText}&quot;
               </Text>
               <Text style={[styles.noResultsHint, { color: theme.text }]}>
                 Try a different keyword
@@ -424,7 +422,7 @@ export default function HomeScreen() {
             <Text style={styles.sizeModalTitle}>Select Size</Text>
             <Text style={styles.sizeModalProduct}>{selectedProduct?.name}</Text>
             <View style={styles.sizeOptions}>
-              {selectedProduct?.sizes?.map((size) => (
+              {selectedProduct?.sizes?.map((size: string) => (
                 <TouchableOpacity
                   key={size}
                   style={styles.sizeOption}

@@ -1,8 +1,6 @@
 import {
   ActivityIndicator,
   Image,
-  NativeScrollEvent,
-  NativeSyntheticEvent,
   ScrollView,
   StyleSheet,
   Text,
@@ -11,12 +9,9 @@ import {
   View,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useRef, useState, useEffect } from "react";
-import { handleUrlParams } from "expo-router/build/fork/getStateFromPath-forks";
+import { useState, useEffect } from "react";
 import { ArrowLeft, Heart, ShoppingBag } from "lucide-react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { products } from "../data/products";
-import { useBag } from "../../context/BagContext";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
 import axios from "axios";
@@ -26,7 +21,7 @@ export default function ProductDetails() {
   const router = useRouter();
   const { width } = useWindowDimensions();
   const [selectedSize, setSelectedSize] = useState("");
-  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState("");
   const { user } = useAuth();
   const [product, setProduct] = useState<any>(null);
   const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -34,17 +29,20 @@ export default function ProductDetails() {
   useEffect(() => {
     const fetchproduct = async () => {
       try {
-        setIsLoading(true);
         const product = await axios.get(`${API_URL}/product/${id}`);
         setProduct(product.data);
-      } catch (error) {
-        setIsLoading(false);
-      } finally {
-        setIsLoading(false);
+        setLoadError("");
+      } catch (error: any) {
+        console.log("Error loading product:", error);
+        setLoadError(
+          error?.response?.status === 404
+            ? "This product is no longer available."
+            : "Couldn't load this product. Please check your connection."
+        );
       }
     };
     fetchproduct();
-  }, []);
+  }, [id]);
 
 const handleToaddBag = async () => {
   if (!user) {
@@ -85,10 +83,7 @@ const handleToaddBag = async () => {
 
   // Check whether this product is already in the user's wishlist (to colour the heart)
   useEffect(() => {
-    if (!user || !product?._id) {
-      setWishlistItemId(null);
-      return;
-    }
+    if (!user || !product?._id) return;
     axios
       .get(`${API_URL}/wishlist/${user._id}`)
       .then((res) => {
@@ -135,6 +130,17 @@ const handleToaddBag = async () => {
       .then((res) => setRecommendations(res.data))
       .catch((error) => console.error("Error fetching recommendations:", error));
   }, [user]);
+
+  if (loadError) {
+    return (
+      <View style={styles.loaderContainer}>
+        <Text style={styles.description}>{loadError}</Text>
+        <TouchableOpacity onPress={() => router.back()}>
+          <Text style={[styles.discount, { marginTop: 12 }]}>Go back</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
 
   if (!product) {
     return (
@@ -502,43 +508,6 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
 });
-function addToBag(
-  arg0:
-    | { selectedSize: string }
-    | {
-        selectedSize: string;
-        id: number;
-        name: string;
-        brand: string;
-        price: string;
-        discount: string;
-        sizes: string[];
-        image: { uri: string };
-      }
-    | {
-        selectedSize: string;
-        id: number;
-        name: string;
-        brand: string;
-        price: string;
-        discount: string;
-        sizes: string[];
-        image: string;
-      }
-    | {
-        selectedSize: string;
-        id: number;
-        name: string;
-        brand: string;
-        price: string;
-        discount: string;
-        image: string;
-        sizes?: undefined;
-      },
-) {
-  throw new Error("Function not implemented.");
-}
-
 function saveViewedProduct(product: any) {
   if (!product) return;
 
