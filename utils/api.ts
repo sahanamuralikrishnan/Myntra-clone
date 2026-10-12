@@ -1,2 +1,2 @@
-// Backend address (your laptop's IP on the Wi-Fi network)
-export const API_URL = "http://192.168.18.2:5000";
+// Backend address (hosted on Render)
+export const API_URL = "https://myntra-backend-s86d.onrender.com";
