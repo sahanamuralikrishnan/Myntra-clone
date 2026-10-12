@@ -48,8 +48,10 @@ export default function RazorpayCheckout({
   // Keep the latest callbacks without reopening the popup when they change
   const onSuccessRef = useRef(onSuccess);
   const onCloseRef = useRef(onClose);
-  onSuccessRef.current = onSuccess;
-  onCloseRef.current = onClose;
+  useEffect(() => {
+    onSuccessRef.current = onSuccess;
+    onCloseRef.current = onClose;
+  });
 
   useEffect(() => {
     if (!visible) return;
