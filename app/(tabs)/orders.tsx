@@ -7,13 +7,14 @@ import {
   Image,
   StyleSheet,
   ActivityIndicator,
-  Alert,
+  Platform,
 } from "react-native";
 import { useRouter, useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
 import { ArrowLeft, MapPin, ChevronRight, Package } from "lucide-react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 import * as FileSystem from "expo-file-system/legacy";
 import * as Sharing from "expo-sharing";
 
@@ -82,7 +83,7 @@ export default function Orders() {
   };
 
   const cancelOrder = (orderId: string) => {
-    Alert.alert("Cancel Order", "Are you sure you want to cancel this order?", [
+    showAlert("Cancel Order", "Are you sure you want to cancel this order?", [
       { text: "No", style: "cancel" },
       {
         text: "Yes, Cancel",
@@ -96,7 +97,7 @@ export default function Orders() {
             );
             fetchorder(1, false);
           } catch (error: any) {
-            Alert.alert(
+            showAlert(
               "Could not cancel",
               error.response?.data?.message || "Please try again",
             );
@@ -107,7 +108,7 @@ export default function Orders() {
   };
 
   const requestReturn = (orderId: string) => {
-    Alert.alert("Request Return", "Request a return for this order?", [
+    showAlert("Request Return", "Request a return for this order?", [
       { text: "No", style: "cancel" },
       {
         text: "Yes, Request Return",
@@ -120,7 +121,7 @@ export default function Orders() {
             );
             fetchorder(1, false);
           } catch (error: any) {
-            Alert.alert(
+            showAlert(
               "Could not request return",
               error.response?.data?.message || "Please try again",
             );
@@ -141,18 +142,38 @@ export default function Orders() {
       const skippedText = skipped.length
         ? ` ${skipped.length} item(s) are no longer available.`
         : "";
-      Alert.alert(
+      showAlert(
         "Added to bag",
         `${added.length} item(s) added to your bag.${skippedText}`,
       );
     } catch (error: any) {
-      Alert.alert(
+      showAlert(
         "Could not reorder",
         error.response?.data?.message || "Please try again",
       );
     }
   };
   const downloadInvoice = async (orderId: string) => {
+    // Browser: fetch the PDF and let the browser save it to Downloads
+    // (expo-file-system and expo-sharing only work on phones)
+    if (Platform.OS === "web") {
+      try {
+        const res = await axios.get(`${API_URL}/order/${orderId}/invoice`, {
+          headers,
+          responseType: "blob",
+        });
+        const url = URL.createObjectURL(res.data);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `invoice-${orderId}.pdf`;
+        link.click();
+        URL.revokeObjectURL(url);
+      } catch {
+        showAlert("Could not download invoice", "Please try again");
+      }
+      return;
+    }
+
     try {
       const fileUri = FileSystem.documentDirectory! + `invoice-${orderId}.pdf`;
       const { uri, status } = await FileSystem.downloadAsync(
@@ -169,10 +190,10 @@ export default function Orders() {
       if (await Sharing.isAvailableAsync()) {
         await Sharing.shareAsync(uri);
       } else {
-        Alert.alert("Downloaded", `Invoice saved to ${uri}`);
+        showAlert("Downloaded", `Invoice saved to ${uri}`);
       }
     } catch {
-      Alert.alert("Could not download invoice", "Please try again");
+      showAlert("Could not download invoice", "Please try again");
     }
   };
 

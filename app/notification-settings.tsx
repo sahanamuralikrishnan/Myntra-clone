@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { ArrowLeft } from "lucide-react-native";
@@ -15,6 +14,7 @@ import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { ThemeContext } from "@/context/ThemeContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 
 type Preferences = Record<string, boolean>;
 
@@ -88,7 +88,7 @@ export default function NotificationSettings() {
       setPrefs(res.data);
     } catch (error) {
       setPrefs(previous); // saving failed: put the switch back
-      Alert.alert("Could not save", "Please check your connection and try again.");
+      showAlert("Could not save", "Please check your connection and try again.");
     }
   };
 

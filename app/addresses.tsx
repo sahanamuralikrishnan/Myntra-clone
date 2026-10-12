@@ -7,13 +7,13 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { ArrowLeft, Plus, Pencil, Trash2 } from "lucide-react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 
 const emptyForm = {
   label: "Home",
@@ -79,7 +79,7 @@ export default function Addresses() {
     if (!user) return;
     const { fullName, phone, street, city, state, postalCode, country } = form;
     if (!fullName || !phone || !street || !city || !state || !postalCode || !country) {
-      Alert.alert("Missing details", "Please fill in every field.");
+      showAlert("Missing details", "Please fill in every field.");
       return;
     }
     try {
@@ -92,12 +92,12 @@ export default function Addresses() {
       fetchAddresses();
     } catch (error) {
       console.error("Error saving address:", error);
-      Alert.alert("Could not save address", "Please try again.");
+      showAlert("Could not save address", "Please try again.");
     }
   };
 
   const handleDelete = (addressId: string) => {
-    Alert.alert("Delete Address", "Are you sure you want to delete this address?", [
+    showAlert("Delete Address", "Are you sure you want to delete this address?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Delete",

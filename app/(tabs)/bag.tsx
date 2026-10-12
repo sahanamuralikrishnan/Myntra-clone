@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react-native";
@@ -13,6 +12,7 @@ import { StyleSheet } from "react-native";
 import React, { useState, useCallback } from "react";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 import axios from "axios";
 
 export default function Bag() {
@@ -79,7 +79,7 @@ export default function Bag() {
         const names = unavailableItems
           .map((i: any) => i.name || "An item")
           .join(", ");
-        Alert.alert(
+        showAlert(
           "Some items aren't available",
           `${names} — please update your bag before checking out.`,
         );
@@ -89,7 +89,7 @@ export default function Bag() {
 
       if (priceChangedItems.length > 0) {
         const names = priceChangedItems.map((i: any) => i.name).join(", ");
-        Alert.alert(
+        showAlert(
           "Prices have changed",
           `${names} changed in price. Continue to checkout with the updated total?`,
           [
@@ -103,7 +103,7 @@ export default function Bag() {
       router.push("/checkout");
     } catch (error) {
       console.error("Error validating bag:", error);
-      Alert.alert("Something went wrong", "Please try again.");
+      showAlert("Something went wrong", "Please try again.");
     }
   };
 

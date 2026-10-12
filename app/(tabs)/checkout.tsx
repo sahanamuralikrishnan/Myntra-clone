@@ -1,9 +1,10 @@
 import React, { useCallback, useState } from "react";
-import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, Alert, BackHandler } from "react-native";
+import { View, Text, TextInput, ScrollView, StyleSheet, TouchableOpacity, BackHandler } from "react-native";
 import { useFocusEffect, useRouter } from "expo-router";
 import { ArrowLeft, MapPin, CreditCard } from "lucide-react-native";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 import axios from "axios";
 import RazorpayCheckout from "@/components/RazorpayCheckout";
 
@@ -48,7 +49,7 @@ export default function Checkout() {
       return;
     }
     if (!fullName.trim() || !street.trim() || !city.trim() || !state.trim() || !postalCode.trim() || !country.trim()) {
-      Alert.alert("Missing address", "Please fill in your full shipping address.");
+      showAlert("Missing address", "Please fill in your full shipping address.");
       return;
     }
     if (loading) return;
@@ -56,11 +57,11 @@ export default function Checkout() {
     try {
       const { data } = await axios.get(`${API_URL}/bag/${user._id}/validate`);
       if (!data.valid) {
-        Alert.alert("Some items unavailable", "Some bag items are no longer available. Please review your bag.");
+        showAlert("Some items unavailable", "Some bag items are no longer available. Please review your bag.");
         return;
       }
       if (!data.newTotal || data.newTotal <= 0) {
-        Alert.alert("Your bag is empty", "Add some items to your bag before placing an order.", [
+        showAlert("Your bag is empty", "Add some items to your bag before placing an order.", [
           { text: "OK", onPress: () => router.push("/bag") },
         ]);
         return;
@@ -74,7 +75,7 @@ export default function Checkout() {
       setShowRazorpay(true);
     } catch (error) {
       console.error("Error starting payment:", error);
-      Alert.alert("Could not start payment", "Please check your connection and try again.");
+      showAlert("Could not start payment", "Please check your connection and try again.");
     } finally {
       setLoading(false);
     }
@@ -98,7 +99,7 @@ export default function Checkout() {
       router.push("/orders");
     } catch (error: any) {
       console.error("Error finishing order:", error);
-      Alert.alert(
+      showAlert(
         "Order not placed",
         error?.response?.data?.message ||
           `Your payment went through but we couldn't create the order. Please contact support with payment ID ${data.razorpay_payment_id}.`

@@ -7,13 +7,13 @@ import {
   TextInput,
   StyleSheet,
   ActivityIndicator,
-  Alert,
 } from "react-native";
 import { useRouter, useFocusEffect } from "expo-router";
 import { ArrowLeft, Plus, Trash2, CreditCard } from "lucide-react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 
 // Guesses the card network from its number, using only the leading digits
 // (this is the standard, public numbering scheme — not sensitive data).
@@ -72,11 +72,11 @@ export default function Payments() {
     const year = Number(yearStr);
 
     if (digitsOnly.length < 12 || !cardholderName || !monthStr || !yearStr) {
-      Alert.alert("Missing details", "Please fill in the card number, expiry (MM/YY) and name.");
+      showAlert("Missing details", "Please fill in the card number, expiry (MM/YY) and name.");
       return;
     }
     if (!Number.isInteger(month) || month < 1 || month > 12) {
-      Alert.alert("Invalid expiry", "Expiry month must be between 01 and 12.");
+      showAlert("Invalid expiry", "Expiry month must be between 01 and 12.");
       return;
     }
 
@@ -99,12 +99,12 @@ export default function Payments() {
       fetchMethods();
     } catch (error) {
       console.error("Error saving payment method:", error);
-      Alert.alert("Could not save card", "Please try again.");
+      showAlert("Could not save card", "Please try again.");
     }
   };
 
   const handleDelete = (id: string) => {
-    Alert.alert("Remove Card", "Are you sure you want to remove this card?", [
+    showAlert("Remove Card", "Are you sure you want to remove this card?", [
       { text: "Cancel", style: "cancel" },
       {
         text: "Remove",

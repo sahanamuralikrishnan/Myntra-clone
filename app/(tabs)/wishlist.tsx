@@ -1,12 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useFocusEffect, useLocalSearchParams, useNavigation } from "expo-router";
-import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from "react-native";
+import { View, Text, Image, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { useRouter } from "expo-router";
 import { ArrowLeft, Heart, ShoppingBag, Trash2 } from "lucide-react-native";
 import { StyleSheet } from "react-native";
 import axios from "axios";
 import { useAuth } from "@/context/AuthContext";
 import { API_URL } from "@/utils/api";
+import { showAlert } from "@/utils/alert";
 
 export default function Wishlist() {
   const router = useRouter();
@@ -81,13 +82,13 @@ export default function Wishlist() {
       await axios.delete(`${API_URL}/wishlist/${item._id}`);
       setWishlist((prev) => prev.filter((w) => w._id !== item._id));
       setSizePickerFor(null);
-      Alert.alert("Moved to bag", `${item.productId.name} (${size}) is now in your bag.`, [
+      showAlert("Moved to bag", `${item.productId.name} (${size}) is now in your bag.`, [
         { text: "Keep Browsing", style: "cancel" },
         { text: "Go to Bag", onPress: () => router.navigate("/bag") },
       ]);
     } catch (error) {
       console.log("Error moving to bag:", error);
-      Alert.alert("Couldn't move to bag", "Please try again.");
+      showAlert("Couldn't move to bag", "Please try again.");
     } finally {
       setMovingId(null);
     }
